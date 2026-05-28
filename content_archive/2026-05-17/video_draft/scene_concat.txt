@@ -1,0 +1,13 @@
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_01.jpg'
+duration 9.700
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_02.jpg'
+duration 11.743
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_03.jpg'
+duration 10.211
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_04.jpg'
+duration 10.211
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_05.jpg'
+duration 11.743
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_06.jpg'
+duration 8.679
+file '/Users/user/Documents/New project/content_archive/2026-05-17/video_draft/scene_frames/scene_06.jpg'
