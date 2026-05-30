@@ -8,6 +8,16 @@
   </head>
   <body>
     <div class="app-shell" id="appShell">
+      <!-- 视觉小说舞台背景与立绘 -->
+      <div class="vn-stage" id="vnStage">
+        <div class="vn-character character-left" id="charLeft">
+          <img src="assets/characters/metan.png" alt="四国めたん" />
+        </div>
+        <div class="vn-character character-right" id="charRight">
+          <img src="assets/characters/zundamon.png" alt="ずんだもん" />
+        </div>
+      </div>
+
       <aside class="sidebar" aria-label="课程导航">
         <div class="brand">
           <div class="brand-mark">日</div>
@@ -33,6 +43,10 @@
                   <option value="voicevox">VOICEVOX (本地免费)</option>
                   <option value="browser">浏览器语音</option>
                 </select>
+              </label>
+              <label class="toggle-container" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0;">
+                <span>二次元立绘模式</span>
+                <input id="vnModeToggle" type="checkbox" style="width: auto; height: auto; margin: 0; cursor: pointer;" />
               </label>
               <label>
                 <span>Region</span>

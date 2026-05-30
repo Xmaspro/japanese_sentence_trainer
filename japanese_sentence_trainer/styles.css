@@ -929,3 +929,187 @@ textarea:focus {
     font-size: 19px;
   }
 }
+
+/* ==========================================
+   二次元立绘与视觉小说模式 (Visual Novel Mode)
+   ========================================== */
+
+/* 默认隐藏背景舞台 */
+.vn-stage {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 1.0s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 视觉小说激活状态样式集 */
+.app-shell.vn-active {
+  background: transparent !important;
+  position: relative;
+}
+
+.app-shell.vn-active .vn-stage {
+  display: block;
+}
+
+/* 侧边栏与主练习区毛玻璃模糊滤镜 */
+.app-shell.vn-active .sidebar,
+.app-shell.vn-active .practice-area,
+.app-shell.vn-active .coach-panel {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+}
+
+/* 确保文字颜色在暗底毛玻璃下清晰可读 */
+.app-shell.vn-active h1,
+.app-shell.vn-active h2,
+.app-shell.vn-active h3,
+.app-shell.vn-active .eyebrow,
+.app-shell.vn-active .chat-bubble strong,
+.app-shell.vn-active .course-title,
+.app-shell.vn-active .section-head h3,
+.app-shell.vn-active label span {
+  color: #ffffff !important;
+}
+
+.app-shell.vn-active .course-button {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+.app-shell.vn-active .course-button.is-active {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.app-shell.vn-active .chat-bubble.from-a {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.app-shell.vn-active .chat-bubble.from-b {
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: #e0f2fe !important;
+  border: 1px solid rgba(14, 165, 233, 0.2) !important;
+}
+
+.app-shell.vn-active .chat-bubble.is-active {
+  background: rgba(16, 185, 129, 0.45) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.app-shell.vn-active textarea {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.app-shell.vn-active textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+.app-shell.vn-active .explain-item {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* 左右两端常驻立绘设置 */
+.vn-character {
+  position: absolute;
+  bottom: -40px;
+  width: 32%;
+  max-width: 420px;
+  height: 85%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
+  opacity: 0.65;
+  filter: blur(0.5px) grayscale(10%);
+  z-index: 1;
+}
+
+.vn-character img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.45));
+}
+
+.vn-character.character-left {
+  left: 6%;
+}
+
+.vn-character.character-right {
+  right: 6%;
+}
+
+/* 立绘活跃/说话状态微动效 */
+.vn-character.is-talking {
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 35px rgba(16, 185, 129, 0.45)) !important;
+  transform: translateY(-20px) scale(1.04);
+  z-index: 2;
+}
+
+/* 立绘安静/虚化状态微动效 */
+.vn-character.is-silent {
+  opacity: 0.35 !important;
+  filter: blur(2px) grayscale(30%) !important;
+  transform: translateY(5px) scale(0.96);
+}
+
+/* 桌面端宽度居中，为两侧立绘留出完美视觉空间 */
+@media (min-width: 821px) {
+  .app-shell.vn-active {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .app-shell.vn-active .sidebar {
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  
+  .app-shell.vn-active .practice-area {
+    max-width: 850px;
+    margin: 0 auto;
+    width: 100%;
+    z-index: 10;
+    overflow-y: auto;
+    height: 100vh;
+    padding-bottom: 40px;
+  }
+}
+
+/* 响应式移动端处理 */
+@media (max-width: 820px) {
+  .app-shell.vn-active .vn-character {
+    display: none !important; /* 移动端屏幕狭窄，完全隐藏角色立绘以保证舒适练习 */
+  }
+  .app-shell.vn-active .vn-stage {
+    position: absolute;
+    height: 100%;
+  }
+}

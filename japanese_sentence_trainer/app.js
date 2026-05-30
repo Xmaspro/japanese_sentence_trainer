@@ -48,6 +48,7 @@ const defaultSettings = {
   speakerBVoice: "ja-JP-KeitaNeural",
   geminiKey: "",
   geminiModel: "gemini-1.5-flash",
+  vnMode: true,
 };
 
 const state = {
@@ -116,6 +117,10 @@ const els = {
   geminiModel: document.querySelector("#geminiModel"),
   saveGeminiButton: document.querySelector("#saveGeminiButton"),
   geminiStatus: document.querySelector("#geminiStatus"),
+  vnModeToggle: document.querySelector("#vnModeToggle"),
+  vnStage: document.querySelector("#vnStage"),
+  charLeft: document.querySelector("#charLeft"),
+  charRight: document.querySelector("#charRight"),
 };
 
 function saveJson(key, value) {
@@ -249,6 +254,7 @@ function render() {
   renderDeck();
   renderExplain();
   triggerVoicevoxPrefetch();
+  renderVnStage();
 }
 
 function renderCourses() {
@@ -388,7 +394,56 @@ function renderVoiceSettings() {
   els.speakerBVoice.value = state.settings.speakerBVoice || defaultSettings.speakerBVoice;
   els.geminiKey.value = state.settings.geminiKey || "";
   els.geminiModel.value = state.settings.geminiModel || defaultSettings.geminiModel;
+  els.vnModeToggle.checked = !!state.settings.vnMode;
   updateVoiceSettingsUI(state.settings.voiceProvider);
+}
+
+const courseBackgrounds = {
+  dailylife: "assets/backgrounds/dailylife.png",
+  school: "assets/backgrounds/school.png",
+  travel: "assets/backgrounds/travel.png",
+  hospital: "assets/backgrounds/hospital.png",
+  social: "assets/backgrounds/social.png",
+};
+
+function renderVnStage() {
+  const isVn = !!state.settings.vnMode;
+  els.appShell.classList.toggle("vn-active", isVn);
+  if (isVn) {
+    const bgUrl = courseBackgrounds[state.course] || "assets/backgrounds/dailylife.png";
+    els.vnStage.style.backgroundImage = `url('${bgUrl}')`;
+  }
+}
+
+function animateVnSpeaker(speaker, audio) {
+  if (!state.settings.vnMode) return;
+
+  const charLeft = els.charLeft;
+  const charRight = els.charRight;
+
+  if (!charLeft || !charRight) return;
+
+  if (speaker === "A") {
+    charLeft.classList.add("is-talking");
+    charLeft.classList.remove("is-silent");
+    charRight.classList.remove("is-talking");
+    charRight.classList.add("is-silent");
+  } else if (speaker === "B") {
+    charRight.classList.add("is-talking");
+    charRight.classList.remove("is-silent");
+    charLeft.classList.remove("is-talking");
+    charLeft.classList.add("is-silent");
+  } else {
+    charLeft.classList.remove("is-talking", "is-silent");
+    charRight.classList.remove("is-talking", "is-silent");
+  }
+
+  if (audio) {
+    audio.addEventListener("ended", () => {
+      charLeft.classList.remove("is-talking", "is-silent");
+      charRight.classList.remove("is-talking", "is-silent");
+    }, { once: true });
+  }
 }
 
 function renderTrainer() {
@@ -666,6 +721,8 @@ async function playUserRecording() {
 async function playSentence() {
   const sentence = currentSentence();
   if (!sentence) return;
+  const speaker = sentence.speaker || "A";
+
   if (state.settings.voiceProvider === "voicevox") {
     try {
       const selectedVoice = getSpeakerVoice(state.settings, sentence.speaker);
@@ -673,20 +730,28 @@ async function playSentence() {
       if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) {
         speakerId = String(selectedVoice).trim();
       }
-      await playVoicevoxSpeech(sentence.ja, speakerId);
+      const audio = await playVoicevoxSpeech(sentence.ja, speakerId);
+      animateVnSpeaker(speaker, audio);
       return;
     } catch (error) {
       els.voiceStatus.textContent = "VOICEVOX 语音失败（请检查本地引擎是否开启），已回退到浏览器语音。";
     }
   } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
     try {
-      await playMicrosoftSpeech(sentence.ja, getSpeakerVoice(state.settings, sentence.speaker));
+      const audio = await playMicrosoftSpeech(sentence.ja, getSpeakerVoice(state.settings, sentence.speaker));
+      animateVnSpeaker(speaker, audio);
       return;
     } catch (error) {
       els.voiceStatus.textContent = "微软语音失败，已回退到浏览器语音。";
     }
   }
-  playBrowserSpeech(sentence.ja);
+
+  const utterance = playBrowserSpeech(sentence.ja);
+  if (utterance) {
+    utterance.onstart = () => animateVnSpeaker(speaker, null);
+    utterance.onend = () => animateVnSpeaker(null, null);
+    utterance.onerror = () => animateVnSpeaker(null, null);
+  }
 }
 
 async function playVoicevoxSpeech(text, speakerId) {
@@ -702,6 +767,7 @@ async function playVoicevoxSpeech(text, speakerId) {
   audio.addEventListener("ended", () => URL.revokeObjectURL(audio.src), { once: true });
   await audio.play();
   els.voiceStatus.textContent = `VOICEVOX 语音：Speaker ${speakerId}`;
+  return audio;
 }
 
 async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVoice) {
@@ -735,6 +801,7 @@ async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVo
   audio.addEventListener("ended", () => URL.revokeObjectURL(audio.src), { once: true });
   await audio.play();
   els.voiceStatus.textContent = `微软语音：${voice}`;
+  return audio;
 }
 
 async function playMicrosoftSpeechDirect(text) {
@@ -760,12 +827,13 @@ async function playMicrosoftSpeechDirect(text) {
 }
 
 function playBrowserSpeech(text) {
-  if (!("speechSynthesis" in window)) return;
+  if (!("speechSynthesis" in window)) return null;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "ja-JP";
   utterance.rate = 0.82;
   window.speechSynthesis.speak(utterance);
+  return utterance;
 }
 
 function saveVoiceSettings() {
@@ -777,8 +845,10 @@ function saveVoiceSettings() {
     speechVoice: els.speechVoice.value.trim() || defaultSettings.speechVoice,
     speakerAVoice: els.speakerAVoice.value.trim() || defaultSettings.speakerAVoice,
     speakerBVoice: els.speakerBVoice.value.trim() || defaultSettings.speakerBVoice,
+    vnMode: !!els.vnModeToggle.checked,
   };
   saveJson(storageKeys.settings, state.settings);
+  renderVnStage();
 
   if (state.settings.voiceProvider === "voicevox") {
     els.voiceStatus.textContent = "VOICEVOX 本地语音配置已保存。";
@@ -1100,6 +1170,11 @@ els.voiceProvider.addEventListener("change", (event) => {
   updateVoiceSettingsUI(event.target.value);
 });
 els.saveVoiceButton.addEventListener("click", saveVoiceSettings);
+els.vnModeToggle.addEventListener("change", (event) => {
+  state.settings.vnMode = !!event.target.checked;
+  saveJson(storageKeys.settings, state.settings);
+  renderVnStage();
+});
 els.saveGeminiButton.addEventListener("click", saveGeminiSettings);
 els.explainButton.addEventListener("click", refreshGeminiExplanation);
 els.answerInput.addEventListener("keydown", (event) => {
