@@ -243,6 +243,17 @@ function updateVoiceSettingsUI(provider) {
 
     speakerBLabel.querySelector("span").textContent = "Speaker B 音色 ID";
     els.speakerBVoice.placeholder = "3";
+
+    // Auto-migrate values to numbers if they are empty or Microsoft voice names
+    if (!els.speechVoice.value || !/^\d+$/.test(els.speechVoice.value.trim())) {
+      els.speechVoice.value = "2";
+    }
+    if (!els.speakerAVoice.value || !/^\d+$/.test(els.speakerAVoice.value.trim())) {
+      els.speakerAVoice.value = "2";
+    }
+    if (!els.speakerBVoice.value || !/^\d+$/.test(els.speakerBVoice.value.trim())) {
+      els.speakerBVoice.value = "3";
+    }
   } else if (provider === "microsoft") {
     regionLabel.style.display = "flex";
     keyLabel.style.display = "flex";
@@ -258,6 +269,17 @@ function updateVoiceSettingsUI(provider) {
 
     speakerBLabel.querySelector("span").textContent = "Speaker B Voice";
     els.speakerBVoice.placeholder = "ja-JP-KeitaNeural";
+
+    // Auto-migrate values to Microsoft names if they are numeric
+    if (!els.speechVoice.value || /^\d+$/.test(els.speechVoice.value.trim())) {
+      els.speechVoice.value = defaultSettings.speechVoice;
+    }
+    if (!els.speakerAVoice.value || /^\d+$/.test(els.speakerAVoice.value.trim())) {
+      els.speakerAVoice.value = defaultSettings.speakerAVoice;
+    }
+    if (!els.speakerBVoice.value || /^\d+$/.test(els.speakerBVoice.value.trim())) {
+      els.speakerBVoice.value = defaultSettings.speakerBVoice;
+    }
   } else {
     regionLabel.style.display = "none";
     keyLabel.style.display = "none";
