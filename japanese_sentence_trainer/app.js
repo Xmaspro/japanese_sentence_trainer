@@ -221,6 +221,52 @@ function restoreCoursePosition(courseId) {
   persistProgress();
 }
 
+function updateVoiceSettingsUI(provider) {
+  const regionLabel = els.speechRegion.parentElement;
+  const keyLabel = els.speechKey.parentElement;
+  const voiceLabel = els.speechVoice.parentElement;
+  const speakerALabel = els.speakerAVoice.parentElement;
+  const speakerBLabel = els.speakerBVoice.parentElement;
+
+  if (provider === "voicevox") {
+    regionLabel.style.display = "none";
+    keyLabel.style.display = "none";
+    voiceLabel.style.display = "flex";
+    speakerALabel.style.display = "flex";
+    speakerBLabel.style.display = "flex";
+
+    voiceLabel.querySelector("span").textContent = "默认音色 ID";
+    els.speechVoice.placeholder = "2";
+
+    speakerALabel.querySelector("span").textContent = "Speaker A 音色 ID";
+    els.speakerAVoice.placeholder = "2";
+
+    speakerBLabel.querySelector("span").textContent = "Speaker B 音色 ID";
+    els.speakerBVoice.placeholder = "3";
+  } else if (provider === "microsoft") {
+    regionLabel.style.display = "flex";
+    keyLabel.style.display = "flex";
+    voiceLabel.style.display = "flex";
+    speakerALabel.style.display = "flex";
+    speakerBLabel.style.display = "flex";
+
+    voiceLabel.querySelector("span").textContent = "默认 Voice";
+    els.speechVoice.placeholder = "ja-JP-NanamiNeural";
+
+    speakerALabel.querySelector("span").textContent = "Speaker A Voice";
+    els.speakerAVoice.placeholder = "ja-JP-NanamiNeural";
+
+    speakerBLabel.querySelector("span").textContent = "Speaker B Voice";
+    els.speakerBVoice.placeholder = "ja-JP-KeitaNeural";
+  } else {
+    regionLabel.style.display = "none";
+    keyLabel.style.display = "none";
+    voiceLabel.style.display = "none";
+    speakerALabel.style.display = "none";
+    speakerBLabel.style.display = "none";
+  }
+}
+
 function renderVoiceSettings() {
   els.voiceProvider.value = state.settings.voiceProvider;
   els.speechRegion.value = state.settings.speechRegion;
@@ -230,6 +276,7 @@ function renderVoiceSettings() {
   els.speakerBVoice.value = state.settings.speakerBVoice || defaultSettings.speakerBVoice;
   els.geminiKey.value = state.settings.geminiKey || "";
   els.geminiModel.value = state.settings.geminiModel || defaultSettings.geminiModel;
+  updateVoiceSettingsUI(state.settings.voiceProvider);
 }
 
 function renderTrainer() {
@@ -510,7 +557,10 @@ async function playSentence() {
   if (state.settings.voiceProvider === "voicevox") {
     try {
       const selectedVoice = getSpeakerVoice(state.settings, sentence.speaker);
-      const speakerId = sentence.speaker === "B" ? (selectedVoice || "3") : (selectedVoice || "2");
+      let speakerId = sentence.speaker === "B" ? "3" : "2";
+      if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) {
+        speakerId = String(selectedVoice).trim();
+      }
       await playVoicevoxSpeech(sentence.ja, speakerId);
       return;
     } catch (error) {
@@ -617,9 +667,16 @@ function saveVoiceSettings() {
     speakerBVoice: els.speakerBVoice.value.trim() || defaultSettings.speakerBVoice,
   };
   saveJson(storageKeys.settings, state.settings);
-  els.voiceStatus.textContent = state.settings.speechKey
-    ? "语音配置已保存到本机浏览器。"
-    : "未填写 API Key，将使用浏览器语音。";
+
+  if (state.settings.voiceProvider === "voicevox") {
+    els.voiceStatus.textContent = "VOICEVOX 本地语音配置已保存。";
+  } else if (state.settings.voiceProvider === "browser") {
+    els.voiceStatus.textContent = "已切换为浏览器原生语音。";
+  } else {
+    els.voiceStatus.textContent = state.settings.speechKey
+      ? "微软语音配置已保存到本机浏览器。"
+      : "微软语音未填写 API Key，将回退到浏览器语音。";
+  }
 }
 
 function saveGeminiSettings() {
@@ -926,6 +983,9 @@ els.nextGroupButton.addEventListener("click", nextGroup);
 els.jumpGroupButton.addEventListener("click", () => jumpToGroupNumber(els.jumpGroupInput.value));
 els.jumpGroupInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") jumpToGroupNumber(els.jumpGroupInput.value);
+});
+els.voiceProvider.addEventListener("change", (event) => {
+  updateVoiceSettingsUI(event.target.value);
 });
 els.saveVoiceButton.addEventListener("click", saveVoiceSettings);
 els.saveGeminiButton.addEventListener("click", saveGeminiSettings);
