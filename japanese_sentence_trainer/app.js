@@ -573,6 +573,11 @@ function renderExplain() {
       </div>
     </div>
   `;
+
+  // 自动触发生成 AI 讲解 (进入该组会话后自动调用)
+  if (state.settings.geminiKey && state.fetchingExplanationSentenceId !== sentence.id) {
+    refreshGeminiExplanation();
+  }
 }
 
 function checkAnswer() {
@@ -888,15 +893,25 @@ async function refreshGeminiExplanation() {
 
   els.geminiStatus.textContent = "正在生成讲解...";
   els.explainList.innerHTML = `<div class="explain-item" style="color: var(--muted); text-align: center; padding: 24px; border-radius: 12px; line-height: 1.6;">正在生成 AI 讲解，请稍候...</div>`;
+  state.fetchingExplanationSentenceId = sentence.id;
   try {
     const explanation = await requestGeminiExplanation(sentence);
     const html = explanationToHtml(explanation);
     saveJson(getExplanationCacheKey(sentence), { html, generatedAt: new Date().toISOString() });
-    els.explainList.innerHTML = html;
+    
+    if (currentSentence()?.id === sentence.id) {
+      els.explainList.innerHTML = html;
+    }
     els.geminiStatus.textContent = "讲解已生成并缓存。";
   } catch (error) {
-    els.geminiStatus.textContent = "Gemini 讲解失败，请检查 API Key 或本地服务。";
-    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">Gemini 讲解生成失败。请检查您的 API Key 是否有效，或本地 Node 服务是否正常运行。</div>`;
+    if (currentSentence()?.id === sentence.id) {
+      els.geminiStatus.textContent = "Gemini 讲解失败，请检查 API Key 或本地服务。";
+      els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">Gemini 讲解生成失败。请检查您的 API Key 是否有效，或本地 Node 服务是否正常运行。</div>`;
+    }
+  } finally {
+    if (state.fetchingExplanationSentenceId === sentence.id) {
+      state.fetchingExplanationSentenceId = null;
+    }
   }
 }
 

@@ -1394,30 +1394,9 @@ body.vn-active .vn-controls {
     justify-content: space-between;
   }
 
-  /* CLANNAD HUD 及顶部浮动卡片美化 - 缩短横幅，靠左放置 */
+  /* 中间栏的标题完全隐藏，消除冗余以让舞台更为宽敞、整洁 */
   body.vn-active .topbar {
-    background: rgba(26, 32, 73, 0.78) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1.5px solid #e0a96d !important;
-    border-radius: 12px;
-    padding: 10px 18px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
-    margin-bottom: 12px !important;
-    width: fit-content !important;
-    max-width: 320px !important; /* 极大缩短框的长度，减少视野占用 */
-  }
-
-  /* 消除眉毛副标题的冗余 */
-  body.vn-active .topbar .eyebrow {
     display: none !important;
-  }
-
-  body.vn-active .topbar h2 {
-    color: #ffffff !important;
-    font-size: 19px !important;
-    margin: 0 !important;
-    line-height: 1.25 !important;
   }
 
   /* 完全隐藏小说模式下的听写模式页签 */
