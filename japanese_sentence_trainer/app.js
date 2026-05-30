@@ -152,10 +152,12 @@ function render() {
   if (state.index >= state.queue.length) state.index = 0;
   state.groupComplete = isCurrentGroupComplete();
 
-  // Save last active sentence for this course
-  const sentence = currentSentence();
-  if (sentence) {
-    localStorage.setItem(`jp-sentence-trainer-last-id-${state.course}`, sentence.id);
+  // Save last active sentence for this course (only if sharded dialogues are loaded)
+  if (loadedCourseItems[state.course]) {
+    const sentence = currentSentence();
+    if (sentence) {
+      localStorage.setItem(`jp-sentence-trainer-last-id-${state.course}`, sentence.id);
+    }
   }
 
   renderCourses();
@@ -194,11 +196,25 @@ function isCurrentGroupComplete() {
   return group.length > 0 && group.every((item) => day.completedIds.has(item.id));
 }
 
+function getAllCompletedIds() {
+  const ids = new Set();
+  if (state.progress?.days) {
+    for (const day of Object.values(state.progress.days)) {
+      if (day.completedIds) {
+        for (const id of day.completedIds) {
+          ids.add(id);
+        }
+      }
+    }
+  }
+  return ids;
+}
+
 function findFirstIncompleteIndex(queue, courseId) {
   const groups = getDialogueGroupsForCourse(state.allSentences, courseId);
-  const day = ensureProgressDay(state.progress, state.activeDate);
+  const completedIds = getAllCompletedIds();
   const incompleteGroup = groups.find((group) => 
-    group.length > 0 && !group.every((item) => day.completedIds.has(item.id))
+    group.length > 0 && !group.every((item) => completedIds.has(item.id))
   );
   if (incompleteGroup && incompleteGroup.length > 0) {
     const firstId = incompleteGroup[0].id;
