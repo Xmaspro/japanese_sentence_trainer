@@ -70,27 +70,35 @@ function loadDialogueData(dataDir = DATA_DIR) {
 
 function writeDialogueBundle(options = {}) {
   const dataDir = options.dataDir || DATA_DIR;
-  const output = options.output || OUTPUT;
   const dialogues = loadDialogueData(dataDir);
   const items = convertDialoguesToTrainingItems(dialogues);
-  fs.mkdirSync(path.dirname(output), { recursive: true });
-  fs.writeFileSync(
-    output,
-    `${JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        sourceDir: path.relative(ROOT, dataDir).replaceAll("\\", "/"),
-        dialogueCount: dialogues.length,
-        itemCount: items.length,
-        topics: Object.values(topicMap),
-        items,
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
-  return { dialogues, items, output };
+  const outputDir = path.join(ROOT, "content_archive");
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const results = [];
+  for (const [key, value] of Object.entries(topicMap)) {
+    const topicId = value.id;
+    const topicItems = items.filter((item) => item.scene === topicId);
+    const topicOutput = path.join(outputDir, `dialogue_${topicId}.json`);
+    fs.writeFileSync(
+      topicOutput,
+      `${JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          sourceDir: path.relative(ROOT, dataDir).replaceAll("\\", "/"),
+          topicId,
+          topicLabel: value.label,
+          itemCount: topicItems.length,
+          items: topicItems,
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    results.push(topicOutput);
+  }
+  return { dialogues, items, outputs: results };
 }
 
 function nearbyContext(utterances, turnNum, direction) {
@@ -165,9 +173,9 @@ function dedupeItems(items) {
 }
 
 if (require.main === module) {
-  const { dialogues, items, output } = writeDialogueBundle();
+  const { dialogues, items, outputs } = writeDialogueBundle();
   console.log(`Converted ${dialogues.length} dialogues into ${items.length} dialogue training items.`);
-  console.log(output);
+  console.log(`Outputs written to:\n${outputs.join("\n")}`);
 }
 
 module.exports = {

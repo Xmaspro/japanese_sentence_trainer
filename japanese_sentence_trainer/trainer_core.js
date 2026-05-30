@@ -184,14 +184,7 @@
   }
 
   function buildDailyPool(sentences, dateKey = getTodayKey()) {
-    const news = sentences
-      .filter((sentence) => sentence.scene === "news")
-      .sort((a, b) => String(b.date ?? "").localeCompare(String(a.date ?? "")) || a.id.localeCompare(b.id));
-    const core = sentences.filter((sentence) => sentence.scene !== "news");
-    if (!news.length) return core;
-    const offset = dayNumber(dateKey) % Math.max(1, news.length);
-    const selectedNews = [...news.slice(offset), ...news.slice(0, offset)].slice(0, 30);
-    return [...selectedNews, ...core];
+    return sentences.filter((sentence) => sentence.scene !== "news");
   }
 
   function createDialogueGroupsForDay(items, dateKey = getTodayKey(), groupSize = 10) {
@@ -321,39 +314,7 @@
     return courses.filter((course) => ids.has(course.id));
   }
 
-  function buildArticleReadingItems(article) {
-    return splitJapaneseSentences(article.fullText || article.description || article.ja || article.title)
-      .slice(0, 80)
-      .map((text, index) => ({
-        id: `${article.id}-read-${String(index + 1).padStart(3, "0")}`,
-        scene: "news",
-        course: "news",
-        level: article.level || "N3",
-        zh: `新闻全文听读：${article.title || article.ja}`,
-        ja: text,
-        kana: "",
-        pattern: "新闻全文",
-        patternNeedle: "新闻全文",
-        particlePrompt: text,
-        particleAnswer: [],
-        tags: ["新闻全文", article.sourceLabel || article.source || "新闻"],
-        sourceUrl: article.sourceUrl || article.url,
-        notes: [
-          ["标题", article.title || article.ja || ""],
-          ["来源", article.sourceLabel || article.source || ""],
-          ["许可", article.license || "未标明"],
-        ],
-      }));
-  }
 
-  function splitJapaneseSentences(text) {
-    return String(text || "")
-      .replace(/\r?\n+/g, " ")
-      .replace(/\s+/g, " ")
-      .match(/[^。！？!?]+[。！？!?]?/g)
-      ?.map((sentence) => sentence.trim())
-      .filter((sentence) => sentence.length >= 6) ?? [];
-  }
 
   function escapeXml(value) {
     return String(value)
@@ -416,7 +377,5 @@
     deserializeProgress,
     buildSpeechSsml,
     filterCoursesForModule,
-    buildArticleReadingItems,
-    splitJapaneseSentences,
   };
 });

@@ -10,7 +10,6 @@ const {
   buildCalendarDays,
   createPracticeGroupsForDay,
   buildDailyPool,
-  buildArticleReadingItems,
   createDialogueGroupsForDay,
   getCurrentDialogueItems,
   getDialogueGroupsForCourse,
@@ -87,20 +86,6 @@ test("future day practice produces a different first group", () => {
   );
 });
 
-test("daily pool prioritizes recent news while keeping core practice", () => {
-  const pool = buildDailyPool(
-    [
-      { id: "core-a", scene: "school" },
-      { id: "news-old", scene: "news", date: "2026-05-20" },
-      { id: "news-new", scene: "news", date: "2026-05-28" },
-    ],
-    "2026-05-30",
-  );
-
-  assert.equal(pool.some((item) => item.scene === "news"), true);
-  assert.equal(pool.some((item) => item.scene === "school"), true);
-});
-
 test("progress serializes and restores completed sentence ids", () => {
   const progress = createInitialProgress("2026-05-30");
   markCorrectAnswer(progress, "2026-05-30", "sentence-a");
@@ -132,22 +117,6 @@ test("course filters keep life and news modules independent", () => {
   assert.deepEqual(lifeCourses, ["dailylife", "school", "travel", "health", "entertainment"]);
   assert.equal(lifeCourses.includes("today"), false);
   assert.equal(lifeCourses.includes("review"), false);
-});
-
-test("full text news becomes ordered reading practice sentences", () => {
-  const items = buildArticleReadingItems({
-    id: "article-1",
-    title: "地域の防災訓練",
-    fullText: "地域の防災訓練が行われました。参加者は避難経路を確認しました！",
-    sourceLabel: "ウィキニュース",
-    sourceUrl: "https://example.com/article",
-    license: "CC BY 2.5",
-  });
-
-  assert.equal(items.length, 2);
-  assert.equal(items[0].ja, "地域の防災訓練が行われました。");
-  assert.equal(items[1].id, "article-1-read-002");
-  assert.deepEqual(items[0].tags, ["新闻全文", "ウィキニュース"]);
 });
 
 test("daily dialogue groups rotate topics and preserve whole dialogue turns", () => {

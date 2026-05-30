@@ -85,7 +85,7 @@ async function handleGeminiExplain(request, response) {
           {
             parts: [
               {
-                text: `请用中文说明下面日语对话句，固定输出四段：词汇、文法、自然用法、可替代表达。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过350字。\n${formatSentenceForGemini(body.sentence)}`,
+                text: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(body.sentence)}`,
               },
             ],
           },
@@ -106,10 +106,17 @@ async function handleGeminiExplain(request, response) {
   response.end(JSON.stringify({ explanation }));
 }
 
-function formatSentenceForGemini(sentence) {
-  const before = (sentence.contextBefore || []).map((line) => `${line.speaker}: ${line.text}`).join("\n");
-  const after = (sentence.contextAfter || []).map((line) => `${line.speaker}: ${line.text}`).join("\n");
-  return `主题：${sentence.topicName || ""}\n前文：\n${before}\n当前句：\n${sentence.speaker || ""}: ${sentence.ja}\n后文：\n${after}\n句型：${sentence.pattern || ""}\n助词：${(sentence.particleAnswer || []).join("、")}`;
+function formatDialogueForGemini(sentence) {
+  const topic = sentence.topicName || "";
+  if (sentence.dialogueLines && sentence.dialogueLines.length > 0) {
+    const linesStr = sentence.dialogueLines
+      .map((line) => `${line.speaker || ""}: ${line.ja || ""}${line.pattern && line.pattern !== "会话表达" ? ` (重要句型: ${line.pattern})` : ""}`)
+      .join("\n");
+    return `主题：${topic}\n完整对话内容：\n${linesStr}`;
+  }
+  const before = (sentence.contextBefore || []).map((line) => `${line.speaker || ""}: ${line.text || ""}`).join("\n");
+  const after = (sentence.contextAfter || []).map((line) => `${line.speaker || ""}: ${line.text || ""}`).join("\n");
+  return `主题：${topic}\n前文：\n${before}\n当前句：\n${sentence.speaker || ""}: ${sentence.ja || ""}\n后文：\n${after}\n重要句型：${sentence.pattern || ""}`;
 }
 
 async function handleMicrosoftTts(request, response) {

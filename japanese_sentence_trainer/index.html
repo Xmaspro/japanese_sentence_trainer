@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>日语句练室</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=202605301820" />
   </head>
   <body>
     <div class="app-shell" id="appShell">
@@ -19,60 +19,64 @@
 
         <nav class="course-list" id="courseList" aria-label="句子包"></nav>
 
-        <section class="settings-box">
-          <div class="section-head">
-            <h3>语音</h3>
-            <button id="saveVoiceButton" type="button">保存</button>
+        <details class="settings-details">
+          <summary>
+            <h3>语音配置</h3>
+            <button id="saveVoiceButton" type="button" onclick="event.stopPropagation()">保存</button>
+          </summary>
+          <div class="settings-content">
+            <div class="voice-settings">
+              <label>
+                <span>模式</span>
+                <select id="voiceProvider">
+                  <option value="microsoft">微软语音 API</option>
+                  <option value="browser">浏览器语音</option>
+                </select>
+              </label>
+              <label>
+                <span>Region</span>
+                <input id="speechRegion" autocomplete="off" placeholder="japaneast" />
+              </label>
+              <label>
+                <span>API Key</span>
+                <input id="speechKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
+              </label>
+              <label>
+                <span>默认 Voice</span>
+                <input id="speechVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
+              </label>
+              <label>
+                <span>Speaker A Voice</span>
+                <input id="speakerAVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
+              </label>
+              <label>
+                <span>Speaker B Voice</span>
+                <input id="speakerBVoice" autocomplete="off" placeholder="ja-JP-KeitaNeural" />
+              </label>
+              <p id="voiceStatus">未配置时自动回退到浏览器语音。</p>
+            </div>
           </div>
-          <div class="voice-settings">
-            <label>
-              <span>模式</span>
-              <select id="voiceProvider">
-                <option value="microsoft">微软语音 API</option>
-                <option value="browser">浏览器语音</option>
-              </select>
-            </label>
-            <label>
-              <span>Region</span>
-              <input id="speechRegion" autocomplete="off" placeholder="japaneast" />
-            </label>
-            <label>
-              <span>API Key</span>
-              <input id="speechKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
-            </label>
-            <label>
-              <span>默认 Voice</span>
-              <input id="speechVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
-            </label>
-            <label>
-              <span>Speaker A Voice</span>
-              <input id="speakerAVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
-            </label>
-            <label>
-              <span>Speaker B Voice</span>
-              <input id="speakerBVoice" autocomplete="off" placeholder="ja-JP-KeitaNeural" />
-            </label>
-            <p id="voiceStatus">未配置时自动回退到浏览器语音。</p>
-          </div>
-        </section>
+        </details>
 
-        <section class="settings-box">
-          <div class="section-head">
-            <h3>Gemini</h3>
-            <button id="saveGeminiButton" type="button">保存</button>
+        <details class="settings-details">
+          <summary>
+            <h3>Gemini 配置</h3>
+            <button id="saveGeminiButton" type="button" onclick="event.stopPropagation()">保存</button>
+          </summary>
+          <div class="settings-content">
+            <div class="voice-settings">
+              <label>
+                <span>API Key</span>
+                <input id="geminiKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
+              </label>
+              <label>
+                <span>Model</span>
+                <input id="geminiModel" autocomplete="off" placeholder="gemini-1.5-flash" />
+              </label>
+              <p id="geminiStatus">填写后点击讲解刷新，可生成词汇和文法说明。</p>
+            </div>
           </div>
-          <div class="voice-settings">
-            <label>
-              <span>API Key</span>
-              <input id="geminiKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
-            </label>
-            <label>
-              <span>Model</span>
-              <input id="geminiModel" autocomplete="off" placeholder="gemini-1.5-flash" />
-            </label>
-            <p id="geminiStatus">填写后点击讲解刷新，可生成词汇和文法说明。</p>
-          </div>
-        </section>
+        </details>
 
       </aside>
 
@@ -86,7 +90,7 @@
 
         <div class="mode-tabs" id="modeTabs" role="tablist" aria-label="练习模式">
           <button class="mode-tab is-active" data-mode="dictation" type="button">听写</button>
-          <button class="mode-tab" data-mode="pattern" type="button">替换</button>
+          <button class="mode-tab" data-mode="pattern" type="button">自由表达</button>
         </div>
 
         <section class="trainer" aria-live="polite">
@@ -164,8 +168,8 @@
       </aside>
     </div>
 
-    <script src="curriculum.js"></script>
-    <script src="trainer_core.js"></script>
-    <script src="app.js"></script>
+    <script src="curriculum.js?v=202605301820"></script>
+    <script src="trainer_core.js?v=202605301820"></script>
+    <script src="app.js?v=202605301820"></script>
   </body>
 </html>

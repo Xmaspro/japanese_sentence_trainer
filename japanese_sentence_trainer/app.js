@@ -25,7 +25,7 @@ const {
 
 const modeLabels = {
   dictation: ["听写", "听到的日语"],
-  pattern: ["替换造句", "新的日语句子"],
+  pattern: ["自由表达", "新的日语句子"],
 };
 
 const storageKeys = {
@@ -57,9 +57,6 @@ const state = {
   progress,
   lifeSentences: [...sentenceBank],
   allSentences: [...sentenceBank],
-  newsItems: [],
-  selectedArticle: null,
-  articleQueue: [],
   dailyGroups: createPracticeGroupsForDay(sentenceBank, progress.activeDate, GROUP_SIZE),
   dailyGroupIndex: 0,
   groupComplete: false,
@@ -318,13 +315,22 @@ function renderExplain() {
     return;
   }
 
-  const context = [...(sentence.contextBefore || []), { speaker: sentence.speaker || "", text: sentence.ja }, ...(sentence.contextAfter || [])]
-    .map((line) => `<div class="explain-item"><strong>${escapeHtml(line.speaker)}：</strong>${escapeHtml(line.text)}</div>`)
+  const contextHtml = [...(sentence.contextBefore || []), { speaker: sentence.speaker || "", text: sentence.ja }, ...(sentence.contextAfter || [])]
+    .map((line) => `<p style="margin: 0 0 8px 0; font-size: 15px;"><strong>${escapeHtml(line.speaker)}：</strong>${escapeHtml(line.text)}</p>`)
     .join("");
-  const notes = sentence.notes
-    .map(([title, body]) => `<div class="explain-item"><strong>${title}</strong><br />${body}</div>`)
+  const notesHtml = sentence.notes
+    .map(([title, body]) => `<p style="margin: 8px 0 0 0; font-size: 15px;"><strong>${title}</strong><br />${body}</p>`)
     .join("");
-  els.explainList.innerHTML = `${context}${notes}`;
+
+  els.explainList.innerHTML = `
+    <div class="explain-item" style="padding: 16px; border-radius: 12px; line-height: 1.6;">
+      <div style="margin-bottom: 12px; font-weight: 700; border-bottom: 1px solid var(--line); padding-bottom: 8px; font-size: 15px; color: var(--ink);">对话参考与场景</div>
+      <div style="font-size: 15px; color: var(--muted);">
+        ${contextHtml}
+        ${notesHtml ? `<div style="margin: 12px 0 8px 0; border-top: 1px dashed var(--line); padding-top: 8px;"></div>${notesHtml}` : ""}
+      </div>
+    </div>
+  `;
 }
 
 function checkAnswer() {
@@ -585,10 +591,12 @@ async function refreshGeminiExplanation() {
   if (!sentence) return;
   if (!state.settings.geminiKey) {
     els.geminiStatus.textContent = "请先填写并保存 Gemini API Key。";
+    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">请先在左侧“Gemini 配置”中填写并保存您的 API Key。</div>`;
     return;
   }
 
   els.geminiStatus.textContent = "正在生成讲解...";
+  els.explainList.innerHTML = `<div class="explain-item" style="color: var(--muted); text-align: center; padding: 24px; border-radius: 12px; line-height: 1.6;">正在生成 AI 讲解，请稍候...</div>`;
   try {
     const explanation = await requestGeminiExplanation(sentence);
     const html = explanationToHtml(explanation);
@@ -597,19 +605,27 @@ async function refreshGeminiExplanation() {
     els.geminiStatus.textContent = "讲解已生成并缓存。";
   } catch (error) {
     els.geminiStatus.textContent = "Gemini 讲解失败，请检查 API Key 或本地服务。";
+    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">Gemini 讲解生成失败。请检查您的 API Key 是否有效，或本地 Node 服务是否正常运行。</div>`;
   }
 }
 
 async function requestGeminiExplanation(sentence) {
+  const currentDialogue = getCurrentDialogueItems(state.queue, sentence);
+  const dialogueLines = currentDialogue.map(line => ({
+    speaker: line.speaker || "",
+    ja: line.ja || "",
+    pattern: line.pattern || ""
+  }));
+
   const payload = {
     key: state.settings.geminiKey,
     model: state.settings.geminiModel || defaultSettings.geminiModel,
     sentence: {
       ja: sentence.ja,
       speaker: sentence.speaker,
-      topicName: sentence.topicName,
-      contextBefore: sentence.contextBefore || [],
-      contextAfter: sentence.contextAfter || [],
+      topicName: sentence.topicName || "",
+      dialogueId: sentence.dialogueId || "",
+      dialogueLines: dialogueLines,
       pattern: sentence.pattern,
       particleAnswer: sentence.particleAnswer || [],
     },
@@ -642,7 +658,7 @@ function buildGeminiRequestBody(sentence) {
       {
         parts: [
           {
-            text: `请用中文说明下面日语对话句，固定输出四段：词汇、文法、自然用法、可替代表达。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过350字。\n${formatSentenceForGemini(sentence)}`,
+            text: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(sentence)}`,
           },
         ],
       },
@@ -650,22 +666,35 @@ function buildGeminiRequestBody(sentence) {
   };
 }
 
-function formatSentenceForGemini(sentence) {
-  const before = (sentence.contextBefore || []).map((line) => `${line.speaker}: ${line.text}`).join("\n");
-  const after = (sentence.contextAfter || []).map((line) => `${line.speaker}: ${line.text}`).join("\n");
-  return `主题：${sentence.topicName || ""}\n前文：\n${before}\n当前句：\n${sentence.speaker || ""}: ${sentence.ja}\n后文：\n${after}\n句型：${sentence.pattern || ""}`;
+function formatDialogueForGemini(sentence) {
+  const topic = sentence.topicName || "";
+  if (sentence.dialogueLines && sentence.dialogueLines.length > 0) {
+    const linesStr = sentence.dialogueLines
+      .map((line) => `${line.speaker || ""}: ${line.ja || ""}${line.pattern && line.pattern !== "会话表达" ? ` (重要句型: ${line.pattern})` : ""}`)
+      .join("\n");
+    return `主题：${topic}\n完整对话内容：\n${linesStr}`;
+  }
+  const before = (sentence.contextBefore || []).map((line) => `${line.speaker || ""}: ${line.text || ""}`).join("\n");
+  const after = (sentence.contextAfter || []).map((line) => `${line.speaker || ""}: ${line.text || ""}`).join("\n");
+  return `主题：${topic}\n前文：\n${before}\n当前句：\n${sentence.speaker || ""}: ${sentence.ja || ""}\n后文：\n${after}\n重要句型：${sentence.pattern || ""}`;
 }
 
 function explanationToHtml(text) {
-  return String(text || "")
+  const paragraphs = String(text || "")
     .split(/\n+/)
     .filter(Boolean)
-    .map((line) => `<div class="explain-item">${escapeHtml(line)}</div>`)
+    .map((line) => {
+      let escaped = escapeHtml(line);
+      escaped = escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      return `<p style="margin: 0 0 10px 0; line-height: 1.6; font-size: 15px; color: var(--muted);">${escaped}</p>`;
+    })
     .join("");
+  return `<div class="explain-item" style="padding: 16px; border-radius: 12px; line-height: 1.6;">${paragraphs}</div>`;
 }
 
 function getExplanationCacheKey(sentence) {
-  return `jp-sentence-trainer-explain-${sentence.id}`;
+  const key = sentence.dialogueId || sentence.id;
+  return `jp-sentence-trainer-explain-${key}`;
 }
 
 function getCurrentGroupIndex(groups = getCourseGroups()) {
@@ -728,40 +757,46 @@ function chooseCourse(courseId) {
   state.index = 0;
   state.groupComplete = false;
   clearRecording();
-  render();
+  if (!loadedCourseItems[courseId]) {
+    loadCourseDialogue(courseId).then((items) => {
+      if (items) {
+        updateStateSentences();
+        render();
+      }
+    });
+  } else {
+    render();
+  }
   els.answerInput.focus();
 }
 
-async function loadNewsTrainerItems() {
+const loadedCourseItems = {};
+
+async function loadCourseDialogue(courseId) {
+  if (loadedCourseItems[courseId]) return loadedCourseItems[courseId];
   try {
-    const response = await fetch("../content_archive/trainer_items.json", { cache: "no-store" });
-    if (!response.ok) return;
+    const response = await fetch(`../content_archive/dialogue_${courseId}.json`, { cache: "no-store" });
+    if (!response.ok) return null;
     const bundle = await response.json();
-    const items = normalizeNewsItems(bundle.items ?? []);
-    if (!items.length) return;
-    state.newsItems = items;
-    state.allSentences = state.lifeSentences;
-    if (state.index >= getQueue().length) state.index = 0;
-    render();
+    const items = normalizeDialogueItems(bundle.items ?? []);
+    if (items.length) {
+      loadedCourseItems[courseId] = items;
+    }
+    return items;
   } catch (error) {
-    // News archive is optional; core practice should continue offline.
+    console.error(`Failed to load dialogue for ${courseId}:`, error);
+    return null;
   }
 }
 
-async function loadDialogueTrainerItems() {
-  try {
-    const response = await fetch("../content_archive/dialogue_items.json", { cache: "no-store" });
-    if (!response.ok) return;
-    const bundle = await response.json();
-    const items = normalizeDialogueItems(bundle.items ?? []);
-    if (!items.length) return;
-    state.lifeSentences = items;
-    state.allSentences = items;
-    if (state.index >= getQueue().length) state.index = 0;
-    render();
-  } catch (error) {
-    // Dialogue corpus is optional during development; static fallback stays usable.
+function updateStateSentences() {
+  const loadedCourseIds = new Set(Object.keys(loadedCourseItems));
+  let allItems = sentenceBank.filter((item) => !loadedCourseIds.has(item.scene));
+  for (const [courseId, items] of Object.entries(loadedCourseItems)) {
+    allItems = allItems.concat(items);
   }
+  state.lifeSentences = allItems.filter((item) => item.scene !== "news");
+  state.allSentences = allItems;
 }
 
 function normalizeDialogueItems(items) {
@@ -778,21 +813,8 @@ function normalizeDialogueItems(items) {
       contextAfter: item.contextAfter || [],
       particleAnswer: item.particleAnswer || [],
       particlePrompt: item.particlePrompt || item.ja,
-      pattern: item.pattern || "自由改写",
+      pattern: item.pattern || "自由表达",
       patternNeedle: item.patternNeedle || item.pattern || "",
-    }));
-}
-
-function normalizeNewsItems(items) {
-  return items
-    .filter((item) => item.id && item.ja && item.scene === "news")
-    .map((item) => ({
-      ...item,
-      course: "news",
-      kana: item.kana ?? "",
-      particleAnswer: item.particleAnswer ?? [],
-      tags: item.tags ?? ["每日新闻"],
-      notes: item.notes ?? [["来源", "content_archive"]],
     }));
 }
 
@@ -857,7 +879,30 @@ els.answerInput.addEventListener("keydown", (event) => {
   }
 });
 
-renderVoiceSettings();
-persistProgress();
-render();
-loadDialogueTrainerItems();
+async function initApp() {
+  renderVoiceSettings();
+  persistProgress();
+  render();
+
+  // 1. Immediately fetch default course sharded file
+  await loadCourseDialogue(state.course);
+  updateStateSentences();
+  render();
+
+  // 2. Lazily fetch other sharded files in the background
+  const otherCourses = courses
+    .map((c) => c.id)
+    .filter((id) => id !== state.course);
+
+  for (const id of otherCourses) {
+    loadCourseDialogue(id).then((items) => {
+      if (items) {
+        updateStateSentences();
+        renderCourses();
+        renderStats();
+      }
+    });
+  }
+}
+
+initApp();

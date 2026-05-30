@@ -1,0 +1,13 @@
+{
+  "name": "japanese-sentence-trainer",
+  "version": "1.0.0",
+  "description": "Japanese Sentence Practice & Dialogue Trainer",
+  "main": "tools/serve_trainer_with_tts.js",
+  "scripts": {
+    "start": "node tools/serve_trainer_with_tts.js",
+    "test": "node --test",
+    "check": "node --check japanese_sentence_trainer/app.js japanese_sentence_trainer/trainer_core.js tools/serve_trainer_with_tts.js",
+    "build:corpus": "node tools/dialogue_corpus_builder.js"
+  },
+  "private": true
+}
