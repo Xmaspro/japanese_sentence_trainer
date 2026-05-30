@@ -156,6 +156,53 @@ async function handleMicrosoftTts(request, response) {
   response.end(Buffer.from(await azureResponse.arrayBuffer()));
 }
 
+async function handleVoicevoxTts(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  const body = JSON.parse(await readBody(request));
+  const text = String(body.text || "").trim();
+  const speaker = Number(body.speaker || 2);
+
+  if (!text) {
+    response.writeHead(400);
+    response.end("Missing text parameter");
+    return;
+  }
+
+  try {
+    // Step 1: Create Audio Query
+    const queryUrl = `http://127.0.0.1:50021/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`;
+    const queryResponse = await fetch(queryUrl, { method: "POST" });
+    if (!queryResponse.ok) {
+      throw new Error(`Failed to create audio query: ${queryResponse.status}`);
+    }
+    const queryJson = await queryResponse.json();
+
+    // Step 2: Synthesis
+    const synthUrl = `http://127.0.0.1:50021/synthesis?speaker=${speaker}`;
+    const synthResponse = await fetch(synthUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(queryJson)
+    });
+
+    if (!synthResponse.ok) {
+      throw new Error(`Failed to synthesize audio: ${synthResponse.status}`);
+    }
+
+    response.writeHead(200, { "Content-Type": "audio/wav" });
+    response.end(Buffer.from(await synthResponse.arrayBuffer()));
+  } catch (error) {
+    console.error("VOICEVOX error:", error);
+    response.writeHead(503, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end("VOICEVOX 引擎未启动或服务不可用，请确保在本地打开了 VOICEVOX 客户端并保持后台运行。");
+  }
+}
+
 function readBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";

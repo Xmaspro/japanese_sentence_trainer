@@ -30,6 +30,7 @@
                 <span>模式</span>
                 <select id="voiceProvider">
                   <option value="microsoft">微软语音 API</option>
+                  <option value="voicevox">VOICEVOX (本地免费)</option>
                   <option value="browser">浏览器语音</option>
                 </select>
               </label>
@@ -53,7 +54,7 @@
                 <span>Speaker B Voice</span>
                 <input id="speakerBVoice" autocomplete="off" placeholder="ja-JP-KeitaNeural" />
               </label>
-              <p id="voiceStatus">未配置时自动回退到浏览器语音。</p>
+              <p id="voiceStatus">未配置或不可用时自动回退到浏览器语音。VOICEVOX 模式下音色填数字 ID 即可（如2为四国めたん，3为ずんだもん）。</p>
             </div>
           </div>
         </details>
@@ -170,6 +171,6 @@
 
     <script src="curriculum.js?v=202605301820"></script>
     <script src="trainer_core.js?v=202605301820"></script>
-    <script src="app.js?v=202605301833"></script>
+    <script src="app.js?v=202605301906"></script>
   </body>
 </html>

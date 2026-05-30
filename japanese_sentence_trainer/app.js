@@ -507,7 +507,16 @@ async function playUserRecording() {
 async function playSentence() {
   const sentence = currentSentence();
   if (!sentence) return;
-  if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
+  if (state.settings.voiceProvider === "voicevox") {
+    try {
+      const selectedVoice = getSpeakerVoice(state.settings, sentence.speaker);
+      const speakerId = sentence.speaker === "B" ? (selectedVoice || "3") : (selectedVoice || "2");
+      await playVoicevoxSpeech(sentence.ja, speakerId);
+      return;
+    } catch (error) {
+      els.voiceStatus.textContent = "VOICEVOX 语音失败（请检查本地引擎是否开启），已回退到浏览器语音。";
+    }
+  } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
     try {
       await playMicrosoftSpeech(sentence.ja, getSpeakerVoice(state.settings, sentence.speaker));
       return;
@@ -516,6 +525,21 @@ async function playSentence() {
     }
   }
   playBrowserSpeech(sentence.ja);
+}
+
+async function playVoicevoxSpeech(text, speakerId) {
+  const response = await fetch("/api/voicevox-tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, speaker: speakerId }),
+  });
+
+  if (!response.ok) throw new Error(`VOICEVOX Speech failed: ${response.status}`);
+
+  const audio = new Audio(URL.createObjectURL(await response.blob()));
+  audio.addEventListener("ended", () => URL.revokeObjectURL(audio.src), { once: true });
+  await audio.play();
+  els.voiceStatus.textContent = `VOICEVOX 语音：Speaker ${speakerId}`;
 }
 
 async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVoice) {
