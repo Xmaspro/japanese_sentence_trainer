@@ -553,6 +553,61 @@ function renderDeck() {
   renderDialogueThread();
 }
 
+let activeTranslationFetchId = null;
+
+async function fetchGroupTranslation(dialogueId, currentDialogue) {
+  const key = state.settings.geminiKey;
+  const model = state.settings.geminiModel || "gemini-1.5-flash";
+  if (!key) return null;
+
+  try {
+    const lines = currentDialogue.map(line => ({
+      id: line.id,
+      speaker: line.speaker || "",
+      ja: line.ja || ""
+    }));
+
+    const promptText = `请将下面这组日语对话翻译为中文。你必须仅返回一个合法的 JSON 格式对象，不要包含任何 markdown 格式标记（如 \`\`\`json ）。该对象的键为每句对话的 id，值为对应的中文翻译。
+
+对话内容：
+${JSON.stringify(lines, null, 2)}`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: promptText,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      }),
+    });
+
+    if (!response.ok) throw new Error(`Gemini translation failed: ${response.status}`);
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+    
+    let cleanText = text.trim();
+    if (cleanText.startsWith("```")) {
+      cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+    }
+    const translations = JSON.parse(cleanText.trim());
+    return translations;
+  } catch (error) {
+    console.error("Gemini translation error:", error);
+    return null;
+  }
+}
+
 function renderGroupTranslation() {
   const container = document.querySelector("#translationList");
   if (!container) return;
@@ -564,15 +619,61 @@ function renderGroupTranslation() {
   }
 
   const current = currentSentence();
-  container.innerHTML = currentDialogue
-    .map((sentence) => {
-      const isCurrent = sentence.id === current?.id;
-      const bgStyle = isCurrent 
-        ? "background: rgba(224, 169, 109, 0.12); font-weight: 700; color: var(--ink); border-left: 3px solid var(--green); padding: 4px 8px; border-radius: 0 4px 4px 0;" 
-        : "color: var(--muted); padding: 4px 8px;";
-      return `<div style="margin: 6px 0; font-size: 13.5px; line-height: 1.5; transition: all 0.2s; ${bgStyle}"><strong>${escapeHtml(sentence.speaker || "")}：</strong>${escapeHtml(sentence.zh || "")}</div>`;
-    })
-    .join("");
+  const dialogueId = current?.dialogueId || current?.id;
+
+  // 1. Try to read from cache first
+  const cacheKey = `jp-sentence-trainer-trans-${dialogueId}`;
+  let cachedTrans = readJson(cacheKey, null);
+
+  // If no cache but we have pre-defined zh in the sentence (like news), let's create a temporary cache object
+  if (!cachedTrans) {
+    const hasPredefinedZh = currentDialogue.some(s => s.zh);
+    if (hasPredefinedZh) {
+      cachedTrans = {};
+      currentDialogue.forEach(s => {
+        cachedTrans[s.id] = s.zh;
+      });
+    }
+  }
+
+  // 2. Render the translations list if we have it
+  if (cachedTrans) {
+    container.innerHTML = currentDialogue
+      .map((sentence) => {
+        const isCurrent = sentence.id === current?.id;
+        const translationText = cachedTrans[sentence.id] || sentence.zh || "";
+        const bgStyle = isCurrent 
+          ? "background: rgba(224, 169, 109, 0.12); font-weight: 700; color: var(--ink); border-left: 3px solid var(--green); padding: 6px 8px; border-radius: 0 4px 4px 0;" 
+          : "color: var(--muted); padding: 6px 8px;";
+        return `<div style="margin: 6px 0; font-size: 13.5px; line-height: 1.5; transition: all 0.2s; ${bgStyle}"><strong>${escapeHtml(sentence.speaker || "")}：</strong>${escapeHtml(translationText || "（暂无翻译）")}</div>`;
+      })
+      .join("");
+    return;
+  }
+
+  // 3. If no cache and no predefined zh
+  if (!state.settings.geminiKey) {
+    container.innerHTML = `
+      <div style="font-size: 13px; color: var(--muted); padding: 12px 8px; line-height: 1.6; text-align: center;">
+        <span style="display: block; margin-bottom: 6px; font-weight: bold; color: var(--green);">💡 智能翻译说明</span>
+        本对话暂无翻译。请在左侧配置并保存 <strong>Gemini API Key</strong>，系统将自动通过 AI 翻译该组对话。
+      </div>
+    `;
+    return;
+  }
+
+  // If we have Gemini key, show a loading status and trigger fetch
+  container.innerHTML = `<div class="chat-empty" style="font-size: 13.5px; color: var(--muted); text-align: center; padding: 16px;">正在通过 Gemini AI 翻译对话，请稍候...</div>`;
+
+  if (activeTranslationFetchId !== dialogueId) {
+    activeTranslationFetchId = dialogueId;
+    fetchGroupTranslation(dialogueId, currentDialogue).then((translations) => {
+      if (translations && activeTranslationFetchId === dialogueId) {
+        saveJson(cacheKey, translations);
+        renderGroupTranslation();
+      }
+    });
+  }
 }
 
 function renderExplain() {
