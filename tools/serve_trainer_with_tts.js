@@ -268,6 +268,7 @@ async function handleGenerateBackground(request, response) {
     const dialogueId = String(body.dialogueId || "").trim();
     const topicName = String(body.topicName || "").trim();
     const firstJa = String(body.firstJa || "").trim();
+    const force = !!body.force;
 
     if (!dialogueId || !topicName) {
       response.writeHead(400);
@@ -275,7 +276,7 @@ async function handleGenerateBackground(request, response) {
       return;
     }
 
-    const webPath = await generateBackground(dialogueId, topicName, firstJa);
+    const webPath = await generateBackground(dialogueId, topicName, firstJa, force);
     response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
     response.end(JSON.stringify({ success: true, url: webPath }));
   } catch (error) {

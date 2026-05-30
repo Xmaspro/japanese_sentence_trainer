@@ -17,7 +17,7 @@ if (!fs.existsSync(generatedDir)) {
  * @param {string} topicName Theme of the dialogue group
  * @returns {Promise<string>} The web path of the image
  */
-async function generateBackground(dialogueId, topicName, firstJa) {
+async function generateBackground(dialogueId, topicName, firstJa, force = false) {
   if (!dialogueId || !topicName) {
     throw new Error("dialogueId and topicName are required");
   }
@@ -28,8 +28,9 @@ async function generateBackground(dialogueId, topicName, firstJa) {
   const webPath = `/japanese_sentence_trainer/assets/backgrounds/generated/${safeFilename}`;
 
   // 1. Check if cached image already exists
-  if (fs.existsSync(absolutePath)) {
-    return webPath;
+  if (!force && fs.existsSync(absolutePath)) {
+    const mtimeMs = fs.statSync(absolutePath).mtimeMs;
+    return `${webPath}?t=${Math.floor(mtimeMs)}`;
   }
 
   // 2. Build the optimized visual novel style prompt
@@ -62,7 +63,8 @@ async function generateBackground(dialogueId, topicName, firstJa) {
   fs.writeFileSync(absolutePath, buffer);
   console.log(`VN background generated and cached successfully at: ${absolutePath}`);
 
-  return webPath;
+  const mtimeMs = fs.statSync(absolutePath).mtimeMs;
+  return `${webPath}?t=${Math.floor(mtimeMs)}`;
 }
 
 module.exports = {

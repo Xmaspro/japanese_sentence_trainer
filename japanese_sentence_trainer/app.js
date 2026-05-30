@@ -129,6 +129,7 @@ const els = {
   vnPlayBtn: document.querySelector("#vnPlayBtn"),
   vnRecordBtn: document.querySelector("#vnRecordBtn"),
   vnPlayRecordingBtn: document.querySelector("#vnPlayRecordingBtn"),
+  vnRegenBgBtn: document.querySelector("#vnRegenBgBtn"),
   vnNextBtn: document.querySelector("#vnNextBtn"),
   vnNextGroupBtn: document.querySelector("#vnNextGroupBtn"),
 };
@@ -412,8 +413,8 @@ const courseBackgrounds = {
   dailylife: "assets/backgrounds/dailylife.png",
   school: "assets/backgrounds/school.png",
   travel: "assets/backgrounds/travel.png",
-  hospital: "assets/backgrounds/hospital.png",
-  social: "assets/backgrounds/social.png",
+  health: "assets/backgrounds/hospital.png",
+  entertainment: "assets/backgrounds/social.png",
 };
 
 let currentVnBgUrl = "";
@@ -496,6 +497,44 @@ async function preloadNextGroupBackground() {
     } catch (err) {
       // Quietly swallow preloading errors
     }
+  }
+}
+
+async function regenerateCurrentBackground() {
+  const sentence = currentSentence();
+  if (!sentence) return;
+
+  const btn = els.vnRegenBgBtn;
+  if (!btn) return;
+
+  const originalText = btn.textContent;
+  btn.textContent = "⏳ 生成中...";
+  btn.disabled = true;
+
+  const dialogueId = sentence.dialogueId || sentence.id;
+  const topicName = sentence.topicName || getLessonTitle(sentence);
+
+  const currentDialogue = getCurrentDialogueItems(state.queue, sentence);
+  const firstJa = currentDialogue.length > 0 ? currentDialogue[0].ja : sentence.ja;
+
+  try {
+    const response = await fetch("/api/generate-background", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dialogueId, topicName, firstJa, force: true })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.url) {
+        applyVnBackground(data.url);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to regenerate background:", error);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
   }
 }
 
@@ -1495,6 +1534,7 @@ els.vnPrevBtn.addEventListener("click", previousSentence);
 els.vnPlayBtn.addEventListener("click", playSentence);
 els.vnRecordBtn.addEventListener("click", toggleRecording);
 els.vnPlayRecordingBtn.addEventListener("click", playUserRecording);
+els.vnRegenBgBtn.addEventListener("click", regenerateCurrentBackground);
 els.vnNextBtn.addEventListener("click", nextSentence);
 els.vnNextGroupBtn.addEventListener("click", nextGroup);
 els.voiceProvider.addEventListener("change", (event) => {
