@@ -959,9 +959,8 @@ body.vn-active .vn-stage {
   display: block;
 }
 
-/* 侧边栏与主练习区毛玻璃模糊滤镜 */
+/* 侧边栏与右侧栏毛玻璃模糊滤镜 */
 body.vn-active .sidebar,
-body.vn-active .practice-area,
 body.vn-active .coach-panel {
   background: rgba(15, 23, 42, 0.45) !important;
   backdrop-filter: blur(16px) saturate(140%);
@@ -970,6 +969,16 @@ body.vn-active .coach-panel {
   color: #f1f5f9 !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
 }
+
+/* 中间主练习区在小说模式下变为完全透明，充当干净的 CLANNAD 游戏背景舞台，消除模糊背景对角色的遮蔽 */
+body.vn-active .practice-area {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 
 /* 确保文字颜色在暗底毛玻璃下清晰可读 */
 body.vn-active h1,
@@ -995,24 +1004,133 @@ body.vn-active .course-button.is-active {
   border-color: var(--accent);
 }
 
-body.vn-active .chat-bubble.from-a {
-  background: rgba(255, 255, 255, 0.12) !important;
+/* ==========================================
+   CLANNAD 风格文本对话框及历史记录样式
+   ========================================== */
+
+body.vn-active .chat-thread {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 12px 0 0 0 !important;
+  gap: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+}
+
+/* 历史日志行（非当前句） - 以小透明气泡飘在上方 */
+body.vn-active .chat-bubble {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 90% !important;
+  margin: 4px auto !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  pointer-events: auto !important;
+  align-self: center !important;
+  text-align: center !important;
+  box-shadow: none !important;
+}
+
+body.vn-active .chat-bubble:hover {
+  background: rgba(15, 23, 42, 0.6) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  opacity: 0.95;
+  cursor: pointer;
 }
 
-body.vn-active .chat-bubble.from-b {
-  background: rgba(14, 165, 233, 0.15) !important;
-  color: #e0f2fe !important;
-  border: 1px solid rgba(14, 165, 233, 0.2) !important;
+body.vn-active .chat-bubble strong {
+  color: #f3d4a2 !important;
+  font-size: 12px !important;
+  margin-right: 6px !important;
+  display: inline !important;
 }
 
+body.vn-active .chat-bubble span {
+  display: inline !important;
+  font-size: 14px !important;
+}
+
+/* 当前处于活跃状态的句子 —— 经典的 CLANNAD 双金边对话框 */
 body.vn-active .chat-bubble.is-active {
-  background: rgba(16, 185, 129, 0.45) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 16px 0 0 0 !important;
+  padding: 24px 28px 24px 28px !important;
+  background: rgba(26, 32, 73, 0.88) !important; /* CLANNAD 经典深海蓝紫底色 */
+  border: 3px double #e0a96d !important; /* CLANNAD 经典暖金双实线边框 */
+  border-radius: 14px !important;
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.6), 
+    inset 0 0 20px rgba(224, 169, 109, 0.15) !important;
   color: #ffffff !important;
+  font-size: 21px !important;
+  font-weight: 500 !important;
+  line-height: 1.7 !important;
+  position: relative !important;
+  text-align: left !important;
+  opacity: 1 !important;
+  align-self: stretch !important;
+  outline: none !important;
 }
+
+/* CLANNAD 悬浮式金边姓名框 */
+body.vn-active .chat-bubble.is-active strong {
+  position: absolute !important;
+  top: -18px !important;
+  left: 28px !important;
+  background: linear-gradient(135deg, #1e2448, #2a3364) !important;
+  color: #f3d4a2 !important;
+  border: 2px solid #e0a96d !important;
+  padding: 4px 22px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.vn-active .chat-bubble.is-active span {
+  display: block !important;
+  font-size: 21px !important;
+  color: #ffffff !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* CLANNAD 金色闪烁继续指示箭头 */
+body.vn-active .chat-bubble.is-active::after {
+  content: "▼";
+  position: absolute;
+  bottom: 14px;
+  right: 24px;
+  color: #e0a96d;
+  font-size: 13px;
+  animation: clannadArrowBlink 1.2s infinite ease-in-out;
+}
+
+@keyframes clannadArrowBlink {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+}
+
 
 body.vn-active textarea {
   background: rgba(15, 23, 42, 0.6) !important;
@@ -1084,19 +1202,37 @@ body.vn-active .explain-item {
   }
 }
 
-/* 立绘活跃/说话状态微动效 */
+/* 立绘活跃/说话状态微动效 - CLANNAD经典的向前跃进，极具代入感 */
 .vn-character.is-talking {
   opacity: 1 !important;
-  filter: drop-shadow(0 0 35px rgba(16, 185, 129, 0.45)) !important;
-  transform: translateY(-20px) scale(1.04);
-  z-index: 2;
+  filter: drop-shadow(0 0 35px rgba(224, 169, 109, 0.45)) !important;
+  z-index: 5;
 }
 
-/* 立绘安静/虚化状态微动效 */
+@media (min-width: 1120px) {
+  .vn-character.character-left.is-talking {
+    transform: translateY(-20px) translateX(8vw) scale(1.1) !important;
+  }
+  .vn-character.character-right.is-talking {
+    transform: translateY(-20px) translateX(-8vw) scale(1.1) !important;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1119px) {
+  .vn-character.character-left.is-talking {
+    transform: translateY(-20px) translateX(6vw) scale(1.1) !important;
+  }
+  .vn-character.character-right.is-talking {
+    transform: translateY(-20px) translateX(-4vw) scale(1.1) !important;
+  }
+}
+
+/* 立绘安静/虚化状态微动效 - 轻微后退避让与缩放 */
 .vn-character.is-silent {
   opacity: 0.35 !important;
-  filter: blur(2px) grayscale(30%) !important;
-  transform: translateY(5px) scale(0.96);
+  filter: blur(3px) grayscale(30%) !important;
+  transform: translateY(10px) scale(0.95);
+  z-index: 2;
 }
 
 /* 桌面端宽度居中，为两侧立绘留出完美视觉空间 */
@@ -1120,9 +1256,78 @@ body.vn-active .explain-item {
     margin: 0 auto;
     width: 100%;
     z-index: 10;
-    overflow-y: auto;
+    overflow: hidden !important; /* 锁定页面滚动，让VN游玩区更像真实游戏 */
     height: 100vh;
-    padding-bottom: 40px;
+    padding: 32px 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* CLANNAD HUD 及顶部浮动卡片美化 */
+  body.vn-active .topbar {
+    background: rgba(26, 32, 73, 0.78) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1.5px solid #e0a96d !important;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.vn-active .topbar h2,
+  body.vn-active .topbar p {
+    color: #ffffff !important;
+  }
+
+  body.vn-active .mode-tabs {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.vn-active .mode-tab {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  body.vn-active .mode-tab.is-active {
+    background: linear-gradient(135deg, #1e2448, #2a3364) !important;
+    border: 1.5px solid #e0a96d !important;
+    color: #ffffff !important;
+  }
+
+  body.vn-active .trainer {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-top: auto !important; /* 强制将对话区下压到舞台底端 */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  body.vn-active .sentence-meta {
+    margin-bottom: 6px !important;
+    justify-content: flex-end; /* 使进度指示靠右对齐，契合游戏HUD排版 */
+  }
+
+  body.vn-active .sentence-meta span {
+    background: rgba(26, 32, 73, 0.8) !important;
+    color: #f3d4a2 !important;
+    border: 1px solid #e0a96d !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 6px !important;
+  }
+
+  body.vn-active .kana-line {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    margin-top: 6px !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
   }
 }
 
