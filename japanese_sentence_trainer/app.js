@@ -151,6 +151,13 @@ function render() {
   state.queue = getQueue();
   if (state.index >= state.queue.length) state.index = 0;
   state.groupComplete = isCurrentGroupComplete();
+
+  // Save last active sentence for this course
+  const sentence = currentSentence();
+  if (sentence) {
+    localStorage.setItem(`jp-sentence-trainer-last-id-${state.course}`, sentence.id);
+  }
+
   renderCourses();
   renderStats();
   renderTrainer();
@@ -185,6 +192,20 @@ function isCurrentGroupComplete() {
   const day = ensureProgressDay(state.progress, state.activeDate);
   const group = getCurrentDialogueItems(state.queue, sentence);
   return group.length > 0 && group.every((item) => day.completedIds.has(item.id));
+}
+
+function findFirstIncompleteIndex(queue, courseId) {
+  const groups = getDialogueGroupsForCourse(state.allSentences, courseId);
+  const day = ensureProgressDay(state.progress, state.activeDate);
+  const incompleteGroup = groups.find((group) => 
+    group.length > 0 && !group.every((item) => day.completedIds.has(item.id))
+  );
+  if (incompleteGroup && incompleteGroup.length > 0) {
+    const firstId = incompleteGroup[0].id;
+    const idx = queue.findIndex((item) => item.id === firstId);
+    return idx >= 0 ? idx : 0;
+  }
+  return 0;
 }
 
 function renderStats() {
@@ -754,17 +775,29 @@ function previousSentence() {
 
 function chooseCourse(courseId) {
   state.course = courseId;
-  state.index = 0;
   state.groupComplete = false;
   clearRecording();
+
+  const loadAndSetIndex = () => {
+    state.queue = getQueue();
+    const lastId = localStorage.getItem(`jp-sentence-trainer-last-id-${courseId}`);
+    let idx = lastId ? state.queue.findIndex((item) => item.id === lastId) : -1;
+    if (idx < 0) {
+      idx = findFirstIncompleteIndex(state.queue, courseId);
+    }
+    state.index = idx >= 0 ? idx : 0;
+  };
+
   if (!loadedCourseItems[courseId]) {
     loadCourseDialogue(courseId).then((items) => {
       if (items) {
         updateStateSentences();
+        loadAndSetIndex();
         render();
       }
     });
   } else {
+    loadAndSetIndex();
     render();
   }
   els.answerInput.focus();
@@ -882,11 +915,24 @@ els.answerInput.addEventListener("keydown", (event) => {
 async function initApp() {
   renderVoiceSettings();
   persistProgress();
+
+  const restoreInitialIndex = () => {
+    state.queue = getQueue();
+    const lastId = localStorage.getItem(`jp-sentence-trainer-last-id-${state.course}`);
+    let idx = lastId ? state.queue.findIndex((item) => item.id === lastId) : -1;
+    if (idx < 0) {
+      idx = findFirstIncompleteIndex(state.queue, state.course);
+    }
+    state.index = idx >= 0 ? idx : 0;
+  };
+
+  restoreInitialIndex();
   render();
 
   // 1. Immediately fetch default course sharded file
   await loadCourseDialogue(state.course);
   updateStateSentences();
+  restoreInitialIndex();
   render();
 
   // 2. Lazily fetch other sharded files in the background
