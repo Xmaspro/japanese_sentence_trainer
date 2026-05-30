@@ -124,6 +124,8 @@ const els = {
   vnPrevGroupBtn: document.querySelector("#vnPrevGroupBtn"),
   vnPrevBtn: document.querySelector("#vnPrevBtn"),
   vnPlayBtn: document.querySelector("#vnPlayBtn"),
+  vnRecordBtn: document.querySelector("#vnRecordBtn"),
+  vnPlayRecordingBtn: document.querySelector("#vnPlayRecordingBtn"),
   vnNextBtn: document.querySelector("#vnNextBtn"),
   vnNextGroupBtn: document.querySelector("#vnNextGroupBtn"),
 };
@@ -696,6 +698,13 @@ async function toggleRecording() {
       els.recordButton.textContent = "录";
       els.recordButton.classList.remove("is-recording");
       els.playRecordingButton.disabled = false;
+      if (els.vnRecordBtn) {
+        els.vnRecordBtn.textContent = "🎙 录音";
+        els.vnRecordBtn.classList.remove("is-recording");
+      }
+      if (els.vnPlayRecordingBtn) {
+        els.vnPlayRecordingBtn.disabled = false;
+      }
       setFeedback("录音完成", "可以播放自己的录音，或重新录一遍。", "");
     });
     state.recorder.start();
@@ -703,6 +712,13 @@ async function toggleRecording() {
     els.recordButton.textContent = "停";
     els.recordButton.classList.add("is-recording");
     els.playRecordingButton.disabled = true;
+    if (els.vnRecordBtn) {
+      els.vnRecordBtn.textContent = "🛑 停止";
+      els.vnRecordBtn.classList.add("is-recording");
+    }
+    if (els.vnPlayRecordingBtn) {
+      els.vnPlayRecordingBtn.disabled = true;
+    }
     setFeedback("录音中", "再次点击“停”结束录音。", "");
   } catch (error) {
     setFeedback("麦克风不可用", "请允许浏览器使用麦克风后再试。", "wrong");
@@ -722,6 +738,13 @@ function clearRecording() {
   els.recordButton.textContent = "录";
   els.recordButton.classList.remove("is-recording");
   els.playRecordingButton.disabled = true;
+  if (els.vnRecordBtn) {
+    els.vnRecordBtn.textContent = "🎙 录音";
+    els.vnRecordBtn.classList.remove("is-recording");
+  }
+  if (els.vnPlayRecordingBtn) {
+    els.vnPlayRecordingBtn.disabled = true;
+  }
 }
 
 async function playUserRecording() {
@@ -1231,6 +1254,8 @@ els.jumpGroupInput.addEventListener("keydown", (event) => {
 els.vnPrevGroupBtn.addEventListener("click", previousGroup);
 els.vnPrevBtn.addEventListener("click", previousSentence);
 els.vnPlayBtn.addEventListener("click", playSentence);
+els.vnRecordBtn.addEventListener("click", toggleRecording);
+els.vnPlayRecordingBtn.addEventListener("click", playUserRecording);
 els.vnNextBtn.addEventListener("click", nextSentence);
 els.vnNextGroupBtn.addEventListener("click", nextGroup);
 els.voiceProvider.addEventListener("change", (event) => {

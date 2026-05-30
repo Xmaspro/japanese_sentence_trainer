@@ -1365,6 +1365,33 @@ body.vn-active .vn-controls {
   transform: translateY(0);
 }
 
+.vn-ctrl-btn:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+.vn-ctrl-btn.is-recording {
+  background: rgba(220, 53, 69, 0.95) !important;
+  color: #ffffff !important;
+  border-color: #ff6b6b !important;
+  animation: vn-pulse-recording 1.5s infinite !important;
+}
+
+@keyframes vn-pulse-recording {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 107, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+  }
+}
+
 /* 桌面端宽度居中，为两侧立绘留出完美视觉空间 */
 @media (min-width: 821px) {
   body.vn-active .app-shell {
