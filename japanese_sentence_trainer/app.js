@@ -432,11 +432,15 @@ async function renderVnStage() {
   const dialogueId = sentence.dialogueId || sentence.id;
   const topicName = sentence.topicName || getLessonTitle(sentence);
 
+  // Retrieve the first Japanese sentence in this dialogue group for unique AI generation context
+  const currentDialogue = getCurrentDialogueItems(state.queue, sentence);
+  const firstJa = currentDialogue.length > 0 ? currentDialogue[0].ja : sentence.ja;
+
   try {
     const response = await fetch("/api/generate-background", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dialogueId, topicName })
+      body: JSON.stringify({ dialogueId, topicName, firstJa })
     });
     
     if (response.ok) {
@@ -480,12 +484,13 @@ async function preloadNextGroupBackground() {
     const nextSentence = nextGroup[0];
     const dialogueId = nextSentence.dialogueId || nextSentence.id;
     const topicName = nextSentence.topicName || getLessonTitle(nextSentence);
+    const firstJa = nextSentence.ja;
     
     try {
       fetch("/api/generate-background", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dialogueId, topicName })
+        body: JSON.stringify({ dialogueId, topicName, firstJa })
       });
     } catch (err) {
       // Quietly swallow preloading errors
@@ -1479,7 +1484,96 @@ els.answerInput.addEventListener("keydown", (event) => {
   }
 });
 
+function makeCharacterDraggable(el) {
+  if (!el) return;
+  let isDragging = false;
+  let startX, startY;
+  let initialLeft, initialTop;
+
+  el.style.cursor = "grab";
+  el.style.pointerEvents = "auto";
+
+  el.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return; // Left click only
+    isDragging = true;
+    el.style.cursor = "grabbing";
+    startX = e.clientX;
+    startY = e.clientY;
+    initialLeft = el.offsetLeft;
+    initialTop = el.offsetTop;
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    
+    const parentWidth = el.parentElement.clientWidth;
+    const parentHeight = el.parentElement.clientHeight;
+    
+    const newLeft = ((initialLeft + dx) / parentWidth) * 100;
+    const newTop = ((initialTop + dy) / parentHeight) * 100;
+
+    el.style.left = `${newLeft}%`;
+    el.style.top = `${newTop}%`;
+    el.style.bottom = "auto";
+    el.style.right = "auto";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      el.style.cursor = "grab";
+    }
+  });
+
+  // Touch support for mobile devices
+  el.addEventListener("touchstart", (e) => {
+    isDragging = true;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialLeft = el.offsetLeft;
+    initialTop = el.offsetTop;
+  });
+
+  document.addEventListener("touchmove", (e) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    
+    const parentWidth = el.parentElement.clientWidth;
+    const parentHeight = el.parentElement.clientHeight;
+    
+    const newLeft = ((initialLeft + dx) / parentWidth) * 100;
+    const newTop = ((initialTop + dy) / parentHeight) * 100;
+
+    el.style.left = `${newLeft}%`;
+    el.style.top = `${newTop}%`;
+    el.style.bottom = "auto";
+    el.style.right = "auto";
+  });
+
+  document.addEventListener("touchend", () => {
+    isDragging = false;
+  });
+
+  // Double click to flip horizontally (mirror image)
+  el.addEventListener("dblclick", () => {
+    const isFlipped = el.style.transform.includes("scaleX(-1)");
+    if (isFlipped) {
+      el.style.transform = el.style.transform.replace("scaleX(-1)", "").trim();
+    } else {
+      el.style.transform = (el.style.transform + " scaleX(-1)").trim();
+    }
+  });
+}
+
 async function initApp() {
+  makeCharacterDraggable(els.charLeft);
+  makeCharacterDraggable(els.charRight);
   renderVoiceSettings();
   persistProgress();
 
