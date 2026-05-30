@@ -24,6 +24,10 @@ http
         await handleMicrosoftTts(request, response);
         return;
       }
+      if (url.pathname === "/api/voicevox-tts") {
+        await handleVoicevoxTts(request, response);
+        return;
+      }
       if (url.pathname === "/api/gemini-explain") {
         await handleGeminiExplain(request, response);
         return;
