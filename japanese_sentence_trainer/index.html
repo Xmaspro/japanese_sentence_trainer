@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div class="app-shell" id="appShell">
       <aside class="sidebar" aria-label="课程导航">
         <div class="brand">
           <div class="brand-mark">日</div>
@@ -19,45 +19,73 @@
 
         <nav class="course-list" id="courseList" aria-label="句子包"></nav>
 
-        <section class="asset-panel" aria-label="真实素材">
-          <img
-            src="../content_archive/2026-05-28/daily_japanese_news-1.png"
-            alt="日语新闻素材预览"
-          />
-          <div>
-            <span>真实素材</span>
-            <strong>新闻句子库</strong>
+        <section class="settings-box">
+          <div class="section-head">
+            <h3>语音</h3>
+            <button id="saveVoiceButton" type="button">保存</button>
+          </div>
+          <div class="voice-settings">
+            <label>
+              <span>模式</span>
+              <select id="voiceProvider">
+                <option value="microsoft">微软语音 API</option>
+                <option value="browser">浏览器语音</option>
+              </select>
+            </label>
+            <label>
+              <span>Region</span>
+              <input id="speechRegion" autocomplete="off" placeholder="japaneast" />
+            </label>
+            <label>
+              <span>API Key</span>
+              <input id="speechKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
+            </label>
+            <label>
+              <span>默认 Voice</span>
+              <input id="speechVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
+            </label>
+            <label>
+              <span>Speaker A Voice</span>
+              <input id="speakerAVoice" autocomplete="off" placeholder="ja-JP-NanamiNeural" />
+            </label>
+            <label>
+              <span>Speaker B Voice</span>
+              <input id="speakerBVoice" autocomplete="off" placeholder="ja-JP-KeitaNeural" />
+            </label>
+            <p id="voiceStatus">未配置时自动回退到浏览器语音。</p>
           </div>
         </section>
+
+        <section class="settings-box">
+          <div class="section-head">
+            <h3>Gemini</h3>
+            <button id="saveGeminiButton" type="button">保存</button>
+          </div>
+          <div class="voice-settings">
+            <label>
+              <span>API Key</span>
+              <input id="geminiKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
+            </label>
+            <label>
+              <span>Model</span>
+              <input id="geminiModel" autocomplete="off" placeholder="gemini-1.5-flash" />
+            </label>
+            <p id="geminiStatus">填写后点击讲解刷新，可生成词汇和文法说明。</p>
+          </div>
+        </section>
+
       </aside>
 
       <main class="practice-area">
         <header class="topbar">
           <div>
-            <p class="eyebrow" id="courseEyebrow">今日练习</p>
+            <p class="eyebrow" id="courseEyebrow">对话主题</p>
             <h2 id="lessonTitle">N5 基础句</h2>
-          </div>
-          <div class="progress-strip" aria-label="学习统计">
-            <div>
-              <span id="doneCount">0</span>
-              <small>完成</small>
-            </div>
-            <div>
-              <span id="accuracyCount">0%</span>
-              <small>正确率</small>
-            </div>
-            <div>
-              <span id="streakCount">0</span>
-              <small>连击</small>
-            </div>
           </div>
         </header>
 
         <div class="mode-tabs" id="modeTabs" role="tablist" aria-label="练习模式">
-          <button class="mode-tab is-active" data-mode="translate" type="button">中译日</button>
-          <button class="mode-tab" data-mode="dictation" type="button">听写</button>
-          <button class="mode-tab" data-mode="particle" type="button">助词</button>
-          <button class="mode-tab" data-mode="shadow" type="button">跟读</button>
+          <button class="mode-tab is-active" data-mode="dictation" type="button">听写</button>
           <button class="mode-tab" data-mode="pattern" type="button">替换</button>
         </div>
 
@@ -67,12 +95,26 @@
             <span id="sentencePosition">1 / 1</span>
           </div>
 
-          <div class="prompt-block">
-            <p class="prompt-label" id="promptLabel">中文提示</p>
-            <div class="prompt-text" id="promptText"></div>
-            <div class="kana-line" id="kanaLine"></div>
-          </div>
+          <div class="chat-thread" id="dialogueThread" aria-label="当前对话"></div>
+          <div class="kana-line" id="kanaLine"></div>
+        </section>
 
+      </main>
+
+      <aside class="coach-panel" aria-label="讲解与错题">
+        <section class="coach-box progress-box">
+          <div class="section-head">
+            <h3>学习进度</h3>
+            <span id="progressSummary">0 / 0</span>
+          </div>
+          <div class="side-progress-bar"><span id="sideProgressBar"></span></div>
+          <p id="sideProgressPercent">0%</p>
+        </section>
+
+        <section class="coach-box practice-box">
+          <div class="section-head">
+            <h3>听到的日语</h3>
+          </div>
           <label class="answer-label" for="answerInput" id="answerLabel">你的日语</label>
           <textarea
             id="answerInput"
@@ -85,9 +127,25 @@
             <button class="icon-button" id="playButton" type="button" title="播放日语" aria-label="播放日语">
               <span>音</span>
             </button>
-            <button class="tool-button" id="hintButton" type="button">提示</button>
+            <button class="icon-button" id="recordButton" type="button" title="录音/停止" aria-label="录音">
+              <span>录</span>
+            </button>
+            <button class="icon-button" id="playRecordingButton" type="button" title="播放我的录音" aria-label="播放我的录音" disabled>
+              <span>我</span>
+            </button>
             <button class="primary-button" id="checkButton" type="button">提交</button>
+            <button class="tool-button" id="prevButton" type="button">上一句</button>
             <button class="tool-button" id="nextButton" type="button">下一句</button>
+          </div>
+
+          <div class="group-jump">
+            <button class="tool-button" id="prevGroupButton" type="button">上一组</button>
+            <label>
+              <span>跳转组</span>
+              <input id="jumpGroupInput" type="number" min="1" value="1" />
+            </label>
+            <button class="tool-button" id="jumpGroupButton" type="button">进入</button>
+            <button class="tool-button" id="nextGroupButton" type="button">下一组</button>
           </div>
 
           <div class="feedback" id="feedbackPanel">
@@ -96,16 +154,6 @@
           </div>
         </section>
 
-        <section class="sentence-deck" aria-label="句子列表">
-          <div class="section-head">
-            <h3>今日句子</h3>
-            <button id="shuffleButton" type="button">乱序</button>
-          </div>
-          <div class="deck-list" id="deckList"></div>
-        </section>
-      </main>
-
-      <aside class="coach-panel" aria-label="讲解与错题">
         <section class="coach-box">
           <div class="section-head">
             <h3>讲解</h3>
@@ -113,22 +161,11 @@
           </div>
           <div class="explain-list" id="explainList"></div>
         </section>
-
-        <section class="coach-box">
-          <div class="section-head">
-            <h3>错因</h3>
-            <button id="clearMistakesButton" type="button">清空</button>
-          </div>
-          <div class="mistake-list" id="mistakeList"></div>
-        </section>
-
-        <section class="coach-box">
-          <h3>助词雷达</h3>
-          <div class="radar" id="particleRadar"></div>
-        </section>
       </aside>
     </div>
 
+    <script src="curriculum.js"></script>
+    <script src="trainer_core.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -1,0 +1,50 @@
+[
+  {
+    "source": "wikinews_recent",
+    "ok": true,
+    "count": 1,
+    "url": "https://ja.wikinews.org/w/index.php?title=%E7%89%B9%E5%88%A5:%E6%96%B0%E3%81%97%E3%81%84%E3%83%9A%E3%83%BC%E3%82%B8&feed=rss"
+  },
+  {
+    "source": "nhk_all",
+    "ok": true,
+    "count": 30,
+    "url": "https://rsshub.rssforever.com/nhk/news_web_easy"
+  },
+  {
+    "source": "mhlw_news",
+    "ok": true,
+    "count": 30,
+    "url": "https://www.mhlw.go.jp/stf/news.rdf"
+  },
+  {
+    "source": "yahoo_top",
+    "ok": true,
+    "count": 8,
+    "url": "https://news.yahoo.co.jp/rss/topics/top-picks.xml"
+  },
+  {
+    "source": "yahoo_domestic",
+    "ok": true,
+    "count": 8,
+    "url": "https://news.yahoo.co.jp/rss/topics/domestic.xml"
+  },
+  {
+    "source": "yahoo_business",
+    "ok": true,
+    "count": 8,
+    "url": "https://news.yahoo.co.jp/rss/topics/business.xml"
+  },
+  {
+    "source": "yahoo_world",
+    "ok": true,
+    "count": 8,
+    "url": "https://news.yahoo.co.jp/rss/topics/world.xml"
+  },
+  {
+    "source": "yahoo_science",
+    "ok": true,
+    "count": 8,
+    "url": "https://news.yahoo.co.jp/rss/topics/science.xml"
+  }
+]

@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+xmlns:admin="http://webns.net/mvcb/"
+>
+<channel rdf:about="https://www.mhlw.go.jp/stf/news.rdf">
+<title>厚生労働省新着情報</title>
+<link>https://www.mhlw.go.jp/stf/news.rdf</link>
+<description>厚生労働省が発表する新着情報です。</description>
+<dc:date>2024-09-30T18:48:49+09:00</dc:date>
+<dc:language>ja</dc:language>
+<copyright>Copyright © Ministry of Health, Labour and Welfare, All Right reserved.</copyright>
+<admin:generatorAgent rdf:resource="https://www.mhlw.go.jp/stf/new-info/index.html"/>
+<items>
+<rdf:Seq>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi/shingi-hosho_126700.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/kinkyu/151106.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryouhoken/database/iryomap/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73564.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/topics/medias/c-med/2026/01/"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/topics/medias/shika_iryou/2026/01/"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/topics/medias/ika_iryou/2026/01/"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/topics/medias/month/26/01.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/saikin/hw/iryosd/m26/is2603.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73409.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73121.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000121431_00485.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/houkokusuunosuii.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/houdou/newpage_00229.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei_hakusho/hakusho/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudoukijun/hoken/denshi-shinsei/tokusetusaito.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/acp-jinseikaigi/"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudouseisaku/sougikoui/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73416.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73519.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73565.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73464.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/saikin/hw/kaigo/kyufu/2026/02.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_72793.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127940.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127939.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/bunya/iryouhoken/jyuudou/ryouyouhi_yusyokouhu_sejutsusho.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73544.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73542.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73382.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73375.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73330.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73468.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/kokka-den/gyomusetumei.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73453.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73524.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73505.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/saikin/hw/jinkou/geppo/s2026/03.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73435.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73467.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73432.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73387.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73418.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73456.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73326.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73441.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73436.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73440.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73434.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73396.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73380.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73348.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73332.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/rousai/hojokin.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/kantyouhouhon.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73420.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73413.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73411.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73408.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73386.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73321.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73222.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73204.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/seisakunitsuite/soshiki/toukei/tp210528-01.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73138.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hantavirushps.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/saikin/hw/judan/taishousha/sn_07.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/houdou/0000184815_00065.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi2/0000176208_00001.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r07/25fr/mk07fr.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r08/2603r/2603r.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73012.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/houdou/0000073061_00034.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/jinzaikaihatsu/koushu_jisshi.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/kouseiroudoushou/saiyou/ikei/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/gyomusetumei-annai_06.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73294.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/houdou/0000119349_00003.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73161.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73056.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/web_magazine/"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73266.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi2/newpage_00268.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi2/newpage_00267.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_72960.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_72939.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73239.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73120.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73115.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73238.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73088.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73067.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_72808.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73234.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000164708.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73231.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/suuri.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73233.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73185.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73206.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/saikin/hw/byouin/m26/02.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_72558.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/topics/bukyoku/syakai/soren/index.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-iseikyoku.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/shingi/0001210262_00097.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/toukei/list/105-1c.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/newpage_73039.html"/>
+<rdf:li rdf:resource="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-hokenkyoku02.html"/>
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi/shingi-hosho_126700.html">
+<title><![CDATA[社会保障審議会(福祉部会)]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi/shingi-hosho_126700.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/kinkyu/151106.html">
+<title><![CDATA[労働基準関係法令違反に係る公表事案]]></title>
+<link>https://www.mhlw.go.jp/kinkyu/151106.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryouhoken/database/iryomap/index.html">
+<title><![CDATA[医療費の地域差分析]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryouhoken/database/iryomap/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73564.html">
+<title><![CDATA[第32回過労死等防止対策推進協議会（ペーパーレス）開催案内]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73564.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html">
+<title><![CDATA[労働災害発生状況]]></title>
+<link>https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/topics/medias/c-med/2026/01/">
+<title><![CDATA[最近の調剤医療費（電算処理分）の動向　令和7年度1月号]]></title>
+<link>https://www.mhlw.go.jp/topics/medias/c-med/2026/01/</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/topics/medias/shika_iryou/2026/01/">
+<title><![CDATA[最近の歯科医療費（電算処理分）の動向　令和7年度1月号]]></title>
+<link>https://www.mhlw.go.jp/topics/medias/shika_iryou/2026/01/</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/topics/medias/ika_iryou/2026/01/">
+<title><![CDATA[最近の医科医療費（電算処理分）の動向　令和7年度1月号]]></title>
+<link>https://www.mhlw.go.jp/topics/medias/ika_iryou/2026/01/</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/topics/medias/month/26/01.html">
+<title><![CDATA[最近の医療費の動向-MEDIAS-令和7年度1月号]]></title>
+<link>https://www.mhlw.go.jp/topics/medias/month/26/01.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/saikin/hw/iryosd/m26/is2603.html">
+<title><![CDATA[医療施設動態調査（令和8(2026)年3月末概数）]]></title>
+<link>https://www.mhlw.go.jp/toukei/saikin/hw/iryosd/m26/is2603.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73409.html">
+<title><![CDATA[医療法第25条に基づく病院に対する立入検査結果について（令和５年度）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73409.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73121.html">
+<title><![CDATA[労働者派遣事業の許可を取り消しました（関係派遣先派遣割合報告書未提出）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73121.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000121431_00485.html">
+<title><![CDATA[新型コロナウイルス感染症に関する報道発表資料を更新しました]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000121431_00485.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T13:55:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/houkokusuunosuii.html">
+<title><![CDATA[新型コロナウイルス感染症の定点当たり報告数の推移を更新しました]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/houkokusuunosuii.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T13:55:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/houdou/newpage_00229.html">
+<title><![CDATA[「令和７年度ものづくり基盤技術の振興施策」（ものづくり白書）を閣議決定しました]]></title>
+<link>https://www.mhlw.go.jp/stf/houdou/newpage_00229.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T12:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei_hakusho/hakusho/index.html">
+<title><![CDATA[白書、年次報告書]]></title>
+<link>https://www.mhlw.go.jp/toukei_hakusho/hakusho/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T11:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudoukijun/hoken/denshi-shinsei/tokusetusaito.html">
+<title><![CDATA[労働保険の電子申請に関する特設サイト]]></title>
+<link>https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudoukijun/hoken/denshi-shinsei/tokusetusaito.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/acp-jinseikaigi/">
+<title><![CDATA[自分らしく生きるための「人生会議」ポータルサイト]]></title>
+<link>https://www.mhlw.go.jp/acp-jinseikaigi/</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudouseisaku/sougikoui/index.html">
+<title><![CDATA[公益事業に関する争議行為の予告公表ページについて更新されました]]></title>
+<link>https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudouseisaku/sougikoui/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73416.html">
+<title><![CDATA[一般職業紹介状況(令和8年4月分)について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73416.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T08:30:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73519.html">
+<title><![CDATA[社会福祉施設職員等退職手当共済制度の在り方に関する検討会（第２回）配布資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73519.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-29T08:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73565.html">
+<title><![CDATA[上野厚生労働大臣　閣議後記者会見のお知らせ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73565.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T15:54:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73464.html">
+<title><![CDATA[しょうけい館で夏の企画展を６月２日から開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73464.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/saikin/hw/kaigo/kyufu/2026/02.html">
+<title><![CDATA[介護給付費等実態統計月報（令和８（2026）年２月審査分）]]></title>
+<link>https://www.mhlw.go.jp/toukei/saikin/hw/kaigo/kyufu/2026/02.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_72793.html">
+<title><![CDATA[６月は「外国人雇用啓発月間」です]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_72793.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127940.html">
+<title><![CDATA[中央最低賃金審議会(目安制度の在り方に関する全員協議会)]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127940.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T13:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127939.html">
+<title><![CDATA[中央最低賃金審議会 (中央最低賃金審議会)]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi/shingi-tingin_127939.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T13:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/bunya/iryouhoken/jyuudou/ryouyouhi_yusyokouhu_sejutsusho.html">
+<title><![CDATA[柔道整復療養費に係る明細書を有償交付する施術所について]]></title>
+<link>https://www.mhlw.go.jp/bunya/iryouhoken/jyuudou/ryouyouhi_yusyokouhu_sejutsusho.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-28T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73544.html">
+<title><![CDATA[第４回 小児がん拠点病院等の指定要件に関するワーキンググループ（資料） ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73544.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T19:46:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73542.html">
+<title><![CDATA[第８回 がんゲノム医療中核拠点病院等の指定要件に関するワーキンググループ（資料） ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73542.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T19:13:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html">
+<title><![CDATA[労働災害発生状況]]></title>
+<link>https://www.mhlw.go.jp/bunya/roudoukijun/anzeneisei11/rousai-hassei/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73382.html">
+<title><![CDATA[令和７年の労働災害発生状況を公表]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73382.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73375.html">
+<title><![CDATA[労働者協同組合に係るオンラインセミナー（全４回）を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73375.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73330.html">
+<title><![CDATA[令和７年「職場における熱中症による死傷災害の発生状況」(確定値)を公表します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73330.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73468.html">
+<title><![CDATA[「遺伝子組換え生物等の使用等の規制による生物の多様性の確保に関する法律」に基づく措置命令について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73468.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T13:55:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/kokka-den/gyomusetumei.html">
+<title><![CDATA[厚生労働省（デジタル・電気・電子区分）]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/kokka-den/gyomusetumei.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73453.html">
+<title><![CDATA[第１回介護保険制度における預貯金等の把握等に係る検討の場の資料について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73453.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-27T08:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73524.html">
+<title><![CDATA[第47回保険者による健診・保健指導等に関する検討会議事録（2026年３月25日）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73524.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T21:43:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73505.html">
+<title><![CDATA[事業場における労働者の健康保持増進の在り方に関する検討会　第２回資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73505.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T18:23:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/saikin/hw/jinkou/geppo/s2026/03.html">
+<title><![CDATA[「人口動態統計速報」令和８（2026）年03月分]]></title>
+<link>https://www.mhlw.go.jp/toukei/saikin/hw/jinkou/geppo/s2026/03.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73435.html">
+<title><![CDATA[第８回 生命科学・医学系研究等における個人情報の取扱い等に関する合同会議]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73435.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T14:07:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73467.html">
+<title><![CDATA[第123回コーデックス連絡協議会 (開催案内）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73467.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73432.html">
+<title><![CDATA[第57回社会保障審議会生活保護基準部会　  資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73432.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73387.html">
+<title><![CDATA[第42回匿名医療情報等の提供に関する専門委員会の開催について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73387.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T09:48:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73418.html">
+<title><![CDATA[標榜可能な診療科名に係る医療法施行令の改正について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73418.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-26T08:43:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73456.html">
+<title><![CDATA[第１６回循環器病対策推進協議会　議事録]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73456.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T19:20:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73326.html">
+<title><![CDATA[令和８年度ハンセン病問題対策協議会の開催について（開催案内）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73326.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T15:21:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73441.html">
+<title><![CDATA[第２０回アレルギー疾患対策推進協議会　資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73441.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T15:04:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73436.html">
+<title><![CDATA[第65回厚生科学審議会疾病対策部会指定難病検討委員会の開催について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73436.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73440.html">
+<title><![CDATA[上野厚生労働大臣　閣議後記者会見のお知らせ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73440.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:54:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73434.html">
+<title><![CDATA[【医療機関・地域関係者向け情報】「夜間・休日ワンストップ窓口／希少言語に対応した遠隔通訳サービス」　第１回オンライン説明会]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73434.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:06:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73396.html">
+<title><![CDATA[医道審議会薬剤師分科会薬剤師国家試験出題基準改定部会（ペーパーレス）を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73396.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73380.html">
+<title><![CDATA[「社会福祉施設職員等退職手当共済制度の在り方に関する検討会」（第２回）を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73380.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73348.html">
+<title><![CDATA[第１回介護保険制度における預貯金等の把握等に係る検討の場の開催について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73348.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73332.html">
+<title><![CDATA[「らい予防法による被害者の名誉回復及び追悼の日」式典について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73332.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/rousai/hojokin.html">
+<title><![CDATA[労災疾病臨床研究補助金事業]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/roudoukijun/rousai/hojokin.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/kantyouhouhon.html">
+<title><![CDATA[官庁訪問のご案内]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/kantyouhouhon.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73420.html">
+<title><![CDATA[「第２回　労働安全衛生法に基づく一般健康診断の検査項目等に関する検討会」を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73420.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-25T09:58:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73413.html">
+<title><![CDATA[第2回　医療関係職種の安定的な養成・確保に関する検討会：資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73413.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T19:59:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73411.html">
+<title><![CDATA[第1回事業場における労働者の健康保持増進の在り方に関する検討会議事録]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73411.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T19:34:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73408.html">
+<title><![CDATA[医療法第25条に基づく病院に対する立入検査結果について（令和４年度）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73408.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T18:07:41+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73386.html">
+<title><![CDATA[令和８年度第２回化学物質管理に係る専門家検討会　資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73386.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73321.html">
+<title><![CDATA[第11回がん診療連携拠点病院等の指定要件に関するワーキンググループ、 第８回がんゲノム医療中核拠点病院等の指定要件に関するワーキンググループ、第４回小児がん拠点病院等の指定要件に関するワーキンググループ合同開催]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73321.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73222.html">
+<title><![CDATA[第394回労働政策審議会職業安定分科会労働力需給制度部会（開催案内）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73222.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73204.html">
+<title><![CDATA[第257回社会保障審議会介護給付費分科会（Web会議）を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73204.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/seisakunitsuite/soshiki/toukei/tp210528-01.html">
+<title><![CDATA[令和８年賃金引上げ等の実態に関する調査にご協力をお願いします]]></title>
+<link>https://www.mhlw.go.jp/seisakunitsuite/soshiki/toukei/tp210528-01.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73138.html">
+<title><![CDATA[特定募集情報等提供事業者に対する業務改善命令について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73138.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hantavirushps.html">
+<title><![CDATA[「クルーズ船におけるハンタウイルス感染症事例について（その２）」の報道発表資料を掲載しました。]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hantavirushps.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/saikin/hw/judan/taishousha/sn_07.html">
+<title><![CDATA[21世紀出生児縦断調査（平成22年出生児）対象者のみなさまへ]]></title>
+<link>https://www.mhlw.go.jp/toukei/saikin/hw/judan/taishousha/sn_07.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/houdou/0000184815_00065.html">
+<title><![CDATA[令和８年３月大学等卒業者の就職状況 （４月１日現在）を公表します]]></title>
+<link>https://www.mhlw.go.jp/stf/houdou/0000184815_00065.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi2/0000176208_00001.html">
+<title><![CDATA[第12回医療介護総合確保促進会議の開催について]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi2/0000176208_00001.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T09:58:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r07/25fr/mk07fr.html">
+<title><![CDATA[毎月勤労統計調査ー2025（令和７）年度分結果確報]]></title>
+<link>https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r07/25fr/mk07fr.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T08:30:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r08/2603r/2603r.html">
+<title><![CDATA[毎月勤労統計調査ー2026（令和８）年３月分結果確報]]></title>
+<link>https://www.mhlw.go.jp/toukei/itiran/roudou/monthly/r08/2603r/2603r.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T08:30:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73012.html">
+<title><![CDATA[社会福祉施設職員等退職手当共済制度の在り方に関する検討会（第１回）　議事録]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73012.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-22T00:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/houdou/0000073061_00034.html">
+<title><![CDATA[「タブネオスカプセル 10mg」投与患者における重篤な肝機能障害に関する注意喚起について]]></title>
+<link>https://www.mhlw.go.jp/stf/houdou/0000073061_00034.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-21T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/jinzaikaihatsu/koushu_jisshi.html">
+<title><![CDATA[キャリアコンサルタント更新講習の申請を希望する機関の方へ（令和8年度6月申請説明会中止に関するお知らせ）]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/jinzaikaihatsu/koushu_jisshi.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-21T11:40:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/kouseiroudoushou/saiyou/ikei/index.html">
+<title><![CDATA[【医系技官採用】令和8年度オンライン業務説明会（歯科のみ）の受付を開始しました。]]></title>
+<link>https://www.mhlw.go.jp/kouseiroudoushou/saiyou/ikei/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-21T11:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/gyomusetumei-annai_06.html">
+<title><![CDATA[官庁訪問直前業務説明会＆相談会〈総合職（人間科学区分）〉のご案内]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/ningen-kagaku/gyomusetumei-annai_06.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-21T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73294.html">
+<title><![CDATA[AIによるサイバー攻撃に関する情報共有と医療機関等における サイバーセキュリティ対策に関する厚生労働省との意見交換について （開催案内）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73294.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-20T14:22:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/houdou/0000119349_00003.html">
+<title><![CDATA[子ども医療電話相談事業（＃８０００事業）に  「それいけ！アンパンマン」を起用して10 周年を迎えました]]></title>
+<link>https://www.mhlw.go.jp/stf/houdou/0000119349_00003.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-20T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73161.html">
+<title><![CDATA[第102回「電離放射線障害の業務上外に関する検討会」を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73161.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-20T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73056.html">
+<title><![CDATA[第183回医学的検証作業グループ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73056.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-20T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/web_magazine/">
+<title><![CDATA[WEBマガジン「厚生労働」]]></title>
+<link>https://www.mhlw.go.jp/web_magazine/</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-20T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73266.html">
+<title><![CDATA[人事労務マガジン 特集第244号　６月は「外国人雇用啓発月間」です　知って、守って、みんなで活躍 ～外国人雇用はルールを守って適正に～]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73266.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-19T19:15:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi2/newpage_00268.html">
+<title><![CDATA[第37回社会保障審議会医療保険部会 あん摩マッサージ指圧、はり・きゅう療養費検討専門委員会議事録]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi2/newpage_00268.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-19T17:06:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi2/newpage_00267.html">
+<title><![CDATA[第34回社会保障審議会医療保険部会 柔道整復療養費検討専門委員会議事録]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi2/newpage_00267.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-19T17:06:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_72960.html">
+<title><![CDATA[「化学物質の審査及び製造等の規制に関する法律施行令の一部を改正する政令」が閣議決定されました]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_72960.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-19T10:30:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_72939.html">
+<title><![CDATA[第３回人口動態統計のICD-11準拠の統計分類適用に係るワーキンググループ資料]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_72939.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T17:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73239.html">
+<title><![CDATA[上野厚生労働大臣　閣議後記者会見のお知らせ]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73239.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T15:21:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73120.html">
+<title><![CDATA[千鳥ヶ淵戦没者墓苑拝礼式の開催（５／25（月）12:30～）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73120.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73115.html">
+<title><![CDATA[千鳥ヶ淵戦没者墓苑拝礼式の取材に関するお願い]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73115.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73238.html">
+<title><![CDATA[令和８年度第２回化学物質管理に係る専門家検討会を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73238.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73088.html">
+<title><![CDATA[「第７回機械の無人運転における安全確保等に関する専門家検討会」を開催します]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73088.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73067.html">
+<title><![CDATA[ハタラクエール2026表彰式の開催及び受賞法人について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73067.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_72808.html">
+<title><![CDATA[「第300回原子爆弾被爆者医療分科会」の開催について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_72808.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73234.html">
+<title><![CDATA[第２０回がん診療提供体制のあり方に関する検討会（議事録）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73234.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T10:46:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000164708.html">
+<title><![CDATA[コンゴ民主共和国及びウガンダにおけるエボラ出血熱に関する世界保健機関（WHO）の「国際的に懸念される公衆衛生上の緊急事態」の宣言について]]></title>
+<link>https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000164708.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T10:46:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73231.html">
+<title><![CDATA[英国へのファビピラビルの提供について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73231.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T10:45:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/suuri.html">
+<title><![CDATA[官庁訪問及びオンライン業務説明会の更新（総合職（数理・デジタル系））]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/suuri.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73233.html">
+<title><![CDATA[第４回労働市場改革分科会（日本成長戦略会議）開催案内]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73233.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-18T09:55:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73185.html">
+<title><![CDATA[福祉人材確保のプラットフォーム構築モデル支援事業の公募結果について]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73185.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T16:55:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73206.html">
+<title><![CDATA[第５回「中東情勢の影響を受ける医薬品、医療機器、医療物資等の確保対策本部」]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73206.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T15:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/saikin/hw/byouin/m26/02.html">
+<title><![CDATA[病院報告（令和８(2026)年2月分概数）]]></title>
+<link>https://www.mhlw.go.jp/toukei/saikin/hw/byouin/m26/02.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_72558.html">
+<title><![CDATA[ロシア連邦政府等から提供された抑留者に関する資料を日本側の資料と照合し、抑留中に死亡した者の個人を特定しました]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_72558.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/topics/bukyoku/syakai/soren/index.html">
+<title><![CDATA[ロシア連邦政府等から提供された抑留者に関する資料について（資料の一覧や死亡者名簿が閲覧できます） ]]></title>
+<link>https://www.mhlw.go.jp/topics/bukyoku/syakai/soren/index.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T14:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-iseikyoku.html">
+<title><![CDATA[採用情報（期間業務職員（医政局）募集情報）]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-iseikyoku.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T12:30:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/shingi/0001210262_00097.html">
+<title><![CDATA[第32回　健康・医療・介護情報利活用検討会　医療等情報利活用ワーキンググループの開催案内]]></title>
+<link>https://www.mhlw.go.jp/stf/shingi/0001210262_00097.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T11:57:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/toukei/list/105-1c.html">
+<title><![CDATA[薬事工業生産動態統計令和8年2月分月報について]]></title>
+<link>https://www.mhlw.go.jp/toukei/list/105-1c.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T11:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/newpage_73039.html">
+<title><![CDATA[「第57回労働政策審議会」を開催します（開催案内）]]></title>
+<link>https://www.mhlw.go.jp/stf/newpage_73039.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T10:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-hokenkyoku02.html">
+<title><![CDATA[採用情報（期間業務職員（保険局）募集情報）]]></title>
+<link>https://www.mhlw.go.jp/stf/kouseiroudoushou/saiyou/hijoukin/hj-hokenkyoku02.html</link>
+<dc:creator>厚生労働省</dc:creator>
+<dc:date>2026-05-15T10:00:00+09:00</dc:date>
+</item>
+</rdf:RDF>
