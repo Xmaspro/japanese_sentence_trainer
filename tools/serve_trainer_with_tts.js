@@ -1,6 +1,7 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 
 const root = path.resolve(__dirname, "..");
 const host = "127.0.0.1";
@@ -160,6 +161,11 @@ async function handleMicrosoftTts(request, response) {
   response.end(Buffer.from(await azureResponse.arrayBuffer()));
 }
 
+const voicevoxCacheDir = path.join(root, "tools", ".voicevox_cache");
+if (!fs.existsSync(voicevoxCacheDir)) {
+  fs.mkdirSync(voicevoxCacheDir, { recursive: true });
+}
+
 async function handleVoicevoxTts(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405);
@@ -175,6 +181,21 @@ async function handleVoicevoxTts(request, response) {
     response.writeHead(400);
     response.end("Missing text parameter");
     return;
+  }
+
+  // Generate unique file path based on speaker and text hash
+  const hash = crypto.createHash("sha256").update(`${speaker}_${text}`).digest("hex");
+  const cachePath = path.join(voicevoxCacheDir, `${hash}.wav`);
+
+  if (fs.existsSync(cachePath)) {
+    try {
+      const data = fs.readFileSync(cachePath);
+      response.writeHead(200, { "Content-Type": "audio/wav", "X-Cache": "HIT" });
+      response.end(data);
+      return;
+    } catch (err) {
+      console.error("Failed to read VOICEVOX cache file:", err);
+    }
   }
 
   try {
@@ -198,8 +219,15 @@ async function handleVoicevoxTts(request, response) {
       throw new Error(`Failed to synthesize audio: ${synthResponse.status}`);
     }
 
-    response.writeHead(200, { "Content-Type": "audio/wav" });
-    response.end(Buffer.from(await synthResponse.arrayBuffer()));
+    const audioBuffer = Buffer.from(await synthResponse.arrayBuffer());
+    try {
+      fs.writeFileSync(cachePath, audioBuffer);
+    } catch (err) {
+      console.error("Failed to write VOICEVOX cache file:", err);
+    }
+
+    response.writeHead(200, { "Content-Type": "audio/wav", "X-Cache": "MISS" });
+    response.end(audioBuffer);
   } catch (error) {
     console.error("VOICEVOX error:", error);
     response.writeHead(503, { "Content-Type": "text/plain;charset=utf-8" });
