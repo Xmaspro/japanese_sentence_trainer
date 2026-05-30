@@ -1055,11 +1055,33 @@ textarea:focus {
 }
 
 .vn-character.character-left {
-  left: 6%;
+  left: 2vw;
+  transition: left 0.3s ease, transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
 }
 
 .vn-character.character-right {
-  right: 6%;
+  right: 2vw;
+  transition: right 0.3s ease, transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
+}
+
+/* 媒体查询：当屏幕宽度大于 1120px 时，为两侧的左侧栏与右侧栏留出空间，使立绘刚好浮动在中间主练习区两侧 */
+@media (min-width: 1120px) {
+  .vn-character.character-left {
+    left: calc(288px - 140px + 3vw);
+  }
+  .vn-character.character-right {
+    right: calc(560px - 140px + 3vw);
+  }
+}
+
+/* 媒体查询：当屏幕在 821px 到 1119px 之间（右侧栏包裹到下方，左侧栏仍占 232px） */
+@media (min-width: 821px) and (max-width: 1119px) {
+  .vn-character.character-left {
+    left: calc(232px - 140px + 3vw);
+  }
+  .vn-character.character-right {
+    right: 2vw;
+  }
 }
 
 /* 立绘活跃/说话状态微动效 */
@@ -1081,12 +1103,13 @@ textarea:focus {
 @media (min-width: 821px) {
   .app-shell.vn-active {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    /* 继承基础 .app-shell 的三列/双列响应式布局，仅限制高度与隐藏溢出以防滚动条冲突 */
     height: 100vh;
     overflow: hidden;
   }
   
-  .app-shell.vn-active .sidebar {
+  .app-shell.vn-active .sidebar,
+  .app-shell.vn-active .coach-panel {
     height: 100vh;
     overflow-y: auto;
     z-index: 10;
