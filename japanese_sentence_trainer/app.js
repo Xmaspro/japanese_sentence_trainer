@@ -121,6 +121,11 @@ const els = {
   vnStage: document.querySelector("#vnStage"),
   charLeft: document.querySelector("#charLeft"),
   charRight: document.querySelector("#charRight"),
+  vnPrevGroupBtn: document.querySelector("#vnPrevGroupBtn"),
+  vnPrevBtn: document.querySelector("#vnPrevBtn"),
+  vnPlayBtn: document.querySelector("#vnPlayBtn"),
+  vnNextBtn: document.querySelector("#vnNextBtn"),
+  vnNextGroupBtn: document.querySelector("#vnNextGroupBtn"),
 };
 
 function saveJson(key, value) {
@@ -529,7 +534,8 @@ function renderDialogueThread() {
     const side = sentence.speaker === "B" ? " from-b" : " from-a";
     item.className = `chat-bubble${side}${active}`;
     item.dataset.index = index;
-    item.innerHTML = `<strong>${escapeHtml(sentence.speaker || "")}</strong><span>${escapeHtml(getDialogueDisplayText(sentence, current, state.mode))}</span>`;
+    const textToShow = state.settings.vnMode ? sentence.ja : getDialogueDisplayText(sentence, current, state.mode);
+    item.innerHTML = `<strong>${escapeHtml(sentence.speaker || "")}</strong><span>${escapeHtml(textToShow)}</span>`;
     els.dialogueThread.append(item);
   });
 }
@@ -996,11 +1002,21 @@ function jumpToGroupNumber(groupNumber) {
   const firstId = groups[targetIndex][0]?.id;
   const queueIndex = state.queue.findIndex((item) => item.id === firstId);
   state.index = queueIndex >= 0 ? queueIndex : 0;
+
+  const sentence = currentSentence();
+  if (sentence && state.settings.vnMode) {
+    markSentenceAnswered(sentence);
+  }
+
   saveCurrentCoursePosition();
   clearRecording();
   renderTrainer();
   renderExplain();
-  els.answerInput.focus();
+  if (state.settings.vnMode) {
+    playSentence();
+  } else {
+    els.answerInput.focus();
+  }
 }
 
 function updateGroupJumpControl() {
@@ -1023,21 +1039,41 @@ function nextGroup() {
 function nextSentence() {
   if (!state.queue.length) return;
   state.index = (state.index + 1) % state.queue.length;
+
+  const sentence = currentSentence();
+  if (sentence && state.settings.vnMode) {
+    markSentenceAnswered(sentence);
+  }
+
   saveCurrentCoursePosition();
   clearRecording();
   renderTrainer();
   renderExplain();
-  els.answerInput.focus();
+  if (state.settings.vnMode) {
+    playSentence();
+  } else {
+    els.answerInput.focus();
+  }
 }
 
 function previousSentence() {
   if (!state.queue.length) return;
   state.index = (state.index - 1 + state.queue.length) % state.queue.length;
+
+  const sentence = currentSentence();
+  if (sentence && state.settings.vnMode) {
+    markSentenceAnswered(sentence);
+  }
+
   saveCurrentCoursePosition();
   clearRecording();
   renderTrainer();
   renderExplain();
-  els.answerInput.focus();
+  if (state.settings.vnMode) {
+    playSentence();
+  } else {
+    els.answerInput.focus();
+  }
 }
 
 function chooseCourse(courseId) {
@@ -1148,10 +1184,19 @@ els.dialogueThread.addEventListener("click", (event) => {
   const button = event.target.closest("[data-index]");
   if (!button) return;
   state.index = Number(button.dataset.index);
+
+  const sentence = currentSentence();
+  if (sentence && state.settings.vnMode) {
+    markSentenceAnswered(sentence);
+  }
+
   saveCurrentCoursePosition();
   renderTrainer();
   renderDeck();
   renderExplain();
+  if (state.settings.vnMode) {
+    playSentence();
+  }
 });
 
 els.playButton.addEventListener("click", playSentence);
@@ -1166,6 +1211,13 @@ els.jumpGroupButton.addEventListener("click", () => jumpToGroupNumber(els.jumpGr
 els.jumpGroupInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") jumpToGroupNumber(els.jumpGroupInput.value);
 });
+
+// 绑定视觉小说控制条按钮事件
+els.vnPrevGroupBtn.addEventListener("click", previousGroup);
+els.vnPrevBtn.addEventListener("click", previousSentence);
+els.vnPlayBtn.addEventListener("click", playSentence);
+els.vnNextBtn.addEventListener("click", nextSentence);
+els.vnNextGroupBtn.addEventListener("click", nextGroup);
 els.voiceProvider.addEventListener("change", (event) => {
   updateVoiceSettingsUI(event.target.value);
 });

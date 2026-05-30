@@ -1148,56 +1148,70 @@ body.vn-active .explain-item {
   border: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
 
-/* 左右两端常驻立绘设置 */
+/* ==========================================
+   左右两端常驻立绘设置 - CLANNAD对角线大立绘布局
+   ========================================== */
 .vn-character {
   position: absolute;
-  bottom: -40px;
   width: 32%;
-  max-width: 420px;
+  max-width: 480px;
   height: 85%;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
   pointer-events: none;
   transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
   opacity: 0.65;
   filter: blur(0.5px) grayscale(10%);
-  z-index: 1;
+  z-index: 2; /* 浮于背景之上 */
 }
 
 .vn-character img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.5));
 }
 
-.vn-character.character-left {
+/* 视觉小说激活状态下，对角线空间布局 */
+body.vn-active .vn-character.character-left {
+  top: 40px;
+  bottom: auto;
+  align-items: flex-start; /* 靠上对齐 */
+  justify-content: center;
+  height: 72%;
+  width: 35%;
+  max-width: 460px;
   left: 2vw;
   transition: left 0.3s ease, transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
 }
 
-.vn-character.character-right {
+body.vn-active .vn-character.character-right {
+  bottom: -30px;
+  top: auto;
+  align-items: flex-end; /* 靠下对齐 */
+  justify-content: center;
+  height: 85%;
+  width: 40%;
+  max-width: 480px;
   right: 2vw;
   transition: right 0.3s ease, transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
 }
 
 /* 媒体查询：当屏幕宽度大于 1120px 时，为两侧的左侧栏与右侧栏留出空间，使立绘刚好浮动在中间主练习区两侧 */
 @media (min-width: 1120px) {
-  .vn-character.character-left {
+  body.vn-active .vn-character.character-left {
     left: calc(288px - 140px + 3vw);
   }
-  .vn-character.character-right {
+  body.vn-active .vn-character.character-right {
     right: calc(560px - 140px + 3vw);
   }
 }
 
 /* 媒体查询：当屏幕在 821px 到 1119px 之间（右侧栏包裹到下方，左侧栏仍占 232px） */
 @media (min-width: 821px) and (max-width: 1119px) {
-  .vn-character.character-left {
+  body.vn-active .vn-character.character-left {
     left: calc(232px - 140px + 3vw);
   }
-  .vn-character.character-right {
+  body.vn-active .vn-character.character-right {
     right: 2vw;
   }
 }
@@ -1205,25 +1219,25 @@ body.vn-active .explain-item {
 /* 立绘活跃/说话状态微动效 - CLANNAD经典的向前跃进，极具代入感 */
 .vn-character.is-talking {
   opacity: 1 !important;
-  filter: drop-shadow(0 0 35px rgba(224, 169, 109, 0.45)) !important;
+  filter: drop-shadow(0 0 35px rgba(224, 169, 109, 0.45)) !important; /* 温暖的金黄色光晕 */
   z-index: 5;
 }
 
 @media (min-width: 1120px) {
   .vn-character.character-left.is-talking {
-    transform: translateY(-20px) translateX(8vw) scale(1.1) !important;
+    transform: translateY(-10px) translateX(7vw) scale(1.1) !important;
   }
   .vn-character.character-right.is-talking {
-    transform: translateY(-20px) translateX(-8vw) scale(1.1) !important;
+    transform: translateY(-20px) translateX(-7vw) scale(1.1) !important;
   }
 }
 
 @media (min-width: 821px) and (max-width: 1119px) {
   .vn-character.character-left.is-talking {
-    transform: translateY(-20px) translateX(6vw) scale(1.1) !important;
+    transform: translateY(-10px) translateX(5vw) scale(1.1) !important;
   }
   .vn-character.character-right.is-talking {
-    transform: translateY(-20px) translateX(-4vw) scale(1.1) !important;
+    transform: translateY(-20px) translateX(-3vw) scale(1.1) !important;
   }
 }
 
@@ -1233,6 +1247,122 @@ body.vn-active .explain-item {
   filter: blur(3px) grayscale(30%) !important;
   transform: translateY(10px) scale(0.95);
   z-index: 2;
+}
+
+/* ==========================================
+   电影镜头 Ken Burns 背景缩放动效
+   ========================================== */
+@keyframes vnKenBurns {
+  0% {
+    transform: scale(1.05) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.12) translate(-1.5%, 1%);
+  }
+  100% {
+    transform: scale(1.05) translate(0, 0);
+  }
+}
+
+body.vn-active .vn-stage {
+  display: block;
+  animation: vnKenBurns 32s infinite ease-in-out;
+  transform-origin: center center;
+}
+
+/* ==========================================
+   樱花飘落粒子特效样式
+   ========================================== */
+.vn-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 3; /* 浮在立绘前，对话框后 */
+  pointer-events: none;
+}
+
+.petal {
+  position: absolute;
+  display: inline-block;
+  color: #ffb7c5;
+  font-size: 20px;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.85;
+  animation: vnCherryFall 12s infinite linear, vnCherryWind 4s infinite ease-in-out;
+}
+
+/* 赋予各樱花瓣随机的速度、延迟和比例，呈现错落有致的天然风动感 */
+.petal:nth-child(1) { left: 10%; animation-delay: 0s, 0s; font-size: 18px; }
+.petal:nth-child(2) { left: 25%; animation-delay: 2s, 0.5s; font-size: 22px; }
+.petal:nth-child(3) { left: 42%; animation-delay: 4.5s, 1s; font-size: 16px; }
+.petal:nth-child(4) { left: 55%; animation-delay: 1.5s, 1.8s; font-size: 24px; }
+.petal:nth-child(5) { left: 68%; animation-delay: 5.5s, 0.2s; font-size: 20px; }
+.petal:nth-child(6) { left: 80%; animation-delay: 3s, 0.8s; font-size: 18px; }
+.petal:nth-child(7) { left: 92%; animation-delay: 7s, 2.2s; font-size: 22px; }
+.petal:nth-child(8) { left: 15%; animation-delay: 9s, 1.2s; font-size: 16px; }
+
+@keyframes vnCherryFall {
+  0% {
+    top: -50px;
+  }
+  100% {
+    top: 105%;
+  }
+}
+
+@keyframes vnCherryWind {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(70px) rotate(180deg);
+  }
+}
+
+/* ==========================================
+   视觉小说游戏底部浮动控制菜单 (.vn-controls)
+   ========================================== */
+.vn-controls {
+  display: none; /* 默认隐藏 */
+}
+
+body.vn-active .vn-controls {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px !important;
+  width: 100%;
+}
+
+.vn-ctrl-btn {
+  background: rgba(26, 32, 73, 0.92) !important;
+  color: #f3d4a2 !important;
+  border: 1.5px solid #e0a96d !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.vn-ctrl-btn:hover {
+  background: #232a55 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(224, 169, 109, 0.3) !important;
+}
+
+.vn-ctrl-btn:active {
+  transform: translateY(0);
 }
 
 /* 桌面端宽度居中，为两侧立绘留出完美视觉空间 */
@@ -1264,38 +1394,35 @@ body.vn-active .explain-item {
     justify-content: space-between;
   }
 
-  /* CLANNAD HUD 及顶部浮动卡片美化 */
+  /* CLANNAD HUD 及顶部浮动卡片美化 - 缩短横幅，靠左放置 */
   body.vn-active .topbar {
     background: rgba(26, 32, 73, 0.78) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border: 1.5px solid #e0a96d !important;
     border-radius: 12px;
-    padding: 12px 20px;
+    padding: 10px 18px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
     margin-bottom: 12px !important;
+    width: fit-content !important;
+    max-width: 320px !important; /* 极大缩短框的长度，减少视野占用 */
   }
 
-  body.vn-active .topbar h2,
-  body.vn-active .topbar p {
+  /* 消除眉毛副标题的冗余 */
+  body.vn-active .topbar .eyebrow {
+    display: none !important;
+  }
+
+  body.vn-active .topbar h2 {
     color: #ffffff !important;
+    font-size: 19px !important;
+    margin: 0 !important;
+    line-height: 1.25 !important;
   }
 
+  /* 完全隐藏小说模式下的听写模式页签 */
   body.vn-active .mode-tabs {
-    background: rgba(15, 23, 42, 0.75) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    margin-bottom: 12px !important;
-  }
-
-  body.vn-active .mode-tab {
-    color: rgba(255, 255, 255, 0.6) !important;
-  }
-
-  body.vn-active .mode-tab.is-active {
-    background: linear-gradient(135deg, #1e2448, #2a3364) !important;
-    border: 1.5px solid #e0a96d !important;
-    color: #ffffff !important;
+    display: none !important;
   }
 
   body.vn-active .trainer {
@@ -1328,6 +1455,12 @@ body.vn-active .explain-item {
     text-align: center !important;
     margin-top: 6px !important;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* 隐藏右侧栏的听音频输入区以及准备开始面板，实现专注故事阅读看板 */
+  body.vn-active .practice-box,
+  body.vn-active #feedbackPanel {
+    display: none !important;
   }
 }
 

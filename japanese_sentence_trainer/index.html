@@ -9,6 +9,17 @@
   <body>
     <!-- 视觉小说舞台背景与立绘 -->
     <div class="vn-stage" id="vnStage">
+      <!-- 樱花飘落粒子系统 -->
+      <div class="vn-particles">
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+        <span class="petal">🌸</span>
+      </div>
       <div class="vn-character character-left" id="charLeft">
         <img src="assets/characters/metan.png" alt="四国めたん" />
       </div>
@@ -117,6 +128,16 @@
           </div>
 
           <div class="chat-thread" id="dialogueThread" aria-label="当前对话"></div>
+
+          <!-- 视觉小说控制条 -->
+          <div class="vn-controls" id="vnControls">
+            <button class="vn-ctrl-btn" id="vnPrevGroupBtn" type="button" title="上一组对话">⏮ 上一组</button>
+            <button class="vn-ctrl-btn" id="vnPrevBtn" type="button" title="上一句">◀ 上一句</button>
+            <button class="vn-ctrl-btn" id="vnPlayBtn" type="button" title="重播语音">🔊 语音</button>
+            <button class="vn-ctrl-btn" id="vnNextBtn" type="button" title="下一句">▶ 下一句</button>
+            <button class="vn-ctrl-btn" id="vnNextGroupBtn" type="button" title="下一组对话">⏭ 下一组</button>
+          </div>
+
           <div class="kana-line" id="kanaLine"></div>
         </section>
 
