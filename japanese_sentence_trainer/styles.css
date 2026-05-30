@@ -1185,13 +1185,13 @@ body.vn-active .vn-character.character-left {
 }
 
 body.vn-active .vn-character.character-right {
-  bottom: -30px;
+  bottom: 40px;
   top: auto;
   align-items: flex-end; /* 靠下对齐 */
   justify-content: center;
-  height: 85%;
-  width: 40%;
-  max-width: 480px;
+  height: 72%;
+  width: 35%;
+  max-width: 460px;
   right: 2vw;
   transition: right 0.3s ease, transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease, filter 0.45s ease;
 }

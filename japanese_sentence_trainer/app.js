@@ -474,6 +474,8 @@ function renderTrainer() {
     els.jumpGroupInput.max = 1;
     els.nextButton.textContent = "下一句";
     setFeedback("暂无句子", "请选择左侧其他主题。", "");
+    const container = document.querySelector("#translationList");
+    if (container) container.innerHTML = `<div class="chat-empty" style="font-size: 14px; color: var(--muted); text-align: center; padding: 12px;">暂无句子。</div>`;
     return;
   }
 
@@ -496,6 +498,11 @@ function renderTrainer() {
 
   els.nextButton.textContent = getNextButtonLabel();
   setFeedback("准备开始", "等待输入。", "");
+
+  if (sentence && state.settings.vnMode) {
+    markSentenceAnswered(sentence);
+  }
+  renderGroupTranslation();
 }
 
 function getLessonTitle(sentence) {
@@ -544,6 +551,28 @@ function renderDialogueThread() {
 
 function renderDeck() {
   renderDialogueThread();
+}
+
+function renderGroupTranslation() {
+  const container = document.querySelector("#translationList");
+  if (!container) return;
+
+  const currentDialogue = getCurrentDialogueItems(state.queue, currentSentence());
+  if (!currentDialogue.length) {
+    container.innerHTML = `<div class="chat-empty" style="font-size: 14px; color: var(--muted); text-align: center; padding: 12px;">暂无翻译。</div>`;
+    return;
+  }
+
+  const current = currentSentence();
+  container.innerHTML = currentDialogue
+    .map((sentence) => {
+      const isCurrent = sentence.id === current?.id;
+      const bgStyle = isCurrent 
+        ? "background: rgba(224, 169, 109, 0.12); font-weight: 700; color: var(--ink); border-left: 3px solid var(--green); padding: 4px 8px; border-radius: 0 4px 4px 0;" 
+        : "color: var(--muted); padding: 4px 8px;";
+      return `<div style="margin: 6px 0; font-size: 13.5px; line-height: 1.5; transition: all 0.2s; ${bgStyle}"><strong>${escapeHtml(sentence.speaker || "")}：</strong>${escapeHtml(sentence.zh || "")}</div>`;
+    })
+    .join("");
 }
 
 function renderExplain() {
@@ -623,6 +652,8 @@ function checkAnswer() {
 
 function markSentenceAnswered(sentence) {
   markCorrectAnswer(state.progress, state.activeDate, sentence.id);
+  persistProgress();
+  renderStats();
 }
 
 function updateGroupProgressAfterAnswer() {
