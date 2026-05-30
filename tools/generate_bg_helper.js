@@ -20,10 +20,14 @@ const activeGenerations = new Map();
  * @param {string} topicName Theme of the dialogue group
  * @returns {Promise<string>} The web path of the image
  */
-async function generateBackground(dialogueId, topicName, firstJa, force = false) {
+async function generateBackground(dialogueId, topicName, firstJa, force = false, options = {}) {
   if (!dialogueId || !topicName) {
     throw new Error("dialogueId and topicName are required");
   }
+
+  const bgProvider = options.bgProvider || "pollinations";
+  const siliconKey = options.siliconKey || "";
+  const siliconModel = options.siliconModel || "black-forest-labs/FLUX.1-schnell";
 
   // Sanitize dialogueId for filename
   const safeFilename = String(dialogueId).replace(/[^a-zA-Z0-9_-]/g, "") + ".jpg";
@@ -59,20 +63,55 @@ async function generateBackground(dialogueId, topicName, firstJa, force = false)
 
       const apiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=576&nologo=true`;
 
-      console.log(`Generating VN background for [${topicName}] (ID: ${dialogueId})...`);
+      console.log(`Generating VN background for [${topicName}] (ID: ${dialogueId}) using provider [${bgProvider}]...`);
 
-      // 4. Fetch image from Pollinations AI with robust retry mechanism
+      // 4. Fetch image with robust retry mechanism
       let response;
       const maxRetries = 3;
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          response = await fetch(apiUrl);
-          if (response.ok) {
-            break; // Success!
+          if (bgProvider === "siliconflow" && siliconKey) {
+            const sfModel = siliconModel || "black-forest-labs/FLUX.1-schnell";
+            console.log(`Calling SiliconFlow Generations API (${sfModel})...`);
+            const sfResponse = await fetch("https://api.siliconflow.cn/v1/images/generations", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${siliconKey}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: sfModel,
+                prompt: prompt,
+                image_size: "1024x576",
+                batch_size: 1
+              })
+            });
+
+            if (!sfResponse.ok) {
+              throw new Error(`SiliconFlow API error: ${sfResponse.status} - ${await sfResponse.text()}`);
+            }
+
+            const sfData = await sfResponse.json();
+            const imageUrl = sfData.images?.[0]?.url;
+            if (!imageUrl) {
+              throw new Error("No image URL returned from SiliconFlow");
+            }
+
+            // Fetch the generated image binary from SiliconFlow CDN
+            response = await fetch(imageUrl);
+            if (response.ok) {
+              break;
+            }
+          } else {
+            // Fallback to Pollinations AI
+            response = await fetch(apiUrl);
+            if (response.ok) {
+              break; // Success!
+            }
           }
-          console.warn(`Pollinations AI returned status ${response.status} (attempt ${attempt}/${maxRetries})`);
+          console.warn(`Background generation returned status ${response ? response.status : 'None'} (attempt ${attempt}/${maxRetries})`);
         } catch (fetchErr) {
-          console.warn(`Fetch to Pollinations AI failed: ${fetchErr.message} (attempt ${attempt}/${maxRetries})`);
+          console.warn(`Background generation attempt failed: ${fetchErr.message} (attempt ${attempt}/${maxRetries})`);
         }
         
         if (attempt < maxRetries) {
@@ -83,7 +122,7 @@ async function generateBackground(dialogueId, topicName, firstJa, force = false)
       }
 
       if (!response || !response.ok) {
-        throw new Error(`Failed to generate image from Pollinations AI after ${maxRetries} attempts: ${response ? response.status : 'Network Error'}`);
+        throw new Error(`Failed to generate image after ${maxRetries} attempts: ${response ? response.status : 'Network Error'}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();

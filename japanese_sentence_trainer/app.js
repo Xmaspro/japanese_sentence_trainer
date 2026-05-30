@@ -49,6 +49,9 @@ const defaultSettings = {
   geminiKey: "",
   geminiModel: "gemini-1.5-flash",
   vnMode: true,
+  bgProvider: "pollinations",
+  siliconKey: "",
+  siliconModel: "black-forest-labs/FLUX.1-schnell",
 };
 
 const state = {
@@ -118,6 +121,11 @@ const els = {
   geminiModel: document.querySelector("#geminiModel"),
   saveGeminiButton: document.querySelector("#saveGeminiButton"),
   geminiStatus: document.querySelector("#geminiStatus"),
+  bgProvider: document.querySelector("#bgProvider"),
+  siliconKey: document.querySelector("#siliconKey"),
+  siliconModel: document.querySelector("#siliconModel"),
+  saveBgSettingsButton: document.querySelector("#saveBgSettingsButton"),
+  bgSettingsStatus: document.querySelector("#bgSettingsStatus"),
   vnModeToggle: document.querySelector("#vnModeToggle"),
   vnStage: document.querySelector("#vnStage"),
   vnBgA: document.querySelector("#vnBgA"),
@@ -407,6 +415,25 @@ function renderVoiceSettings() {
   els.geminiModel.value = state.settings.geminiModel || defaultSettings.geminiModel;
   els.vnModeToggle.checked = !!state.settings.vnMode;
   updateVoiceSettingsUI(state.settings.voiceProvider);
+
+  // Populate background settings
+  els.bgProvider.value = state.settings.bgProvider || "pollinations";
+  els.siliconKey.value = state.settings.siliconKey || "";
+  els.siliconModel.value = state.settings.siliconModel || "black-forest-labs/FLUX.1-schnell";
+  updateBgSettingsUI(els.bgProvider.value);
+}
+
+function updateBgSettingsUI(provider) {
+  const siliconKeyLabel = document.querySelector("#siliconKeyLabel");
+  const siliconModelLabel = document.querySelector("#siliconModelLabel");
+  if (!siliconKeyLabel || !siliconModelLabel) return;
+  if (provider === "siliconflow") {
+    siliconKeyLabel.style.display = "grid";
+    siliconModelLabel.style.display = "grid";
+  } else {
+    siliconKeyLabel.style.display = "none";
+    siliconModelLabel.style.display = "none";
+  }
 }
 
 const courseBackgrounds = {
@@ -442,7 +469,14 @@ async function renderVnStage() {
     const response = await fetch("/api/generate-background", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dialogueId, topicName, firstJa })
+      body: JSON.stringify({
+        dialogueId,
+        topicName,
+        firstJa,
+        bgProvider: state.settings.bgProvider,
+        siliconKey: state.settings.siliconKey,
+        siliconModel: state.settings.siliconModel
+      })
     });
     
     if (response.ok) {
@@ -492,7 +526,14 @@ async function preloadNextGroupBackground() {
       fetch("/api/generate-background", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dialogueId, topicName, firstJa })
+        body: JSON.stringify({
+          dialogueId,
+          topicName,
+          firstJa,
+          bgProvider: state.settings.bgProvider,
+          siliconKey: state.settings.siliconKey,
+          siliconModel: state.settings.siliconModel
+        })
       });
     } catch (err) {
       // Quietly swallow preloading errors
@@ -521,7 +562,15 @@ async function regenerateCurrentBackground() {
     const response = await fetch("/api/generate-background", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dialogueId, topicName, firstJa, force: true })
+      body: JSON.stringify({
+        dialogueId,
+        topicName,
+        firstJa,
+        force: true,
+        bgProvider: state.settings.bgProvider,
+        siliconKey: state.settings.siliconKey,
+        siliconModel: state.settings.siliconModel
+      })
     });
     
     if (response.ok) {
@@ -1183,6 +1232,18 @@ function saveGeminiSettings() {
   els.geminiStatus.textContent = state.settings.geminiKey ? "Gemini 配置已保存到本机浏览器。" : "未填写 Gemini API Key。";
 }
 
+function saveBgSettings() {
+  state.settings = {
+    ...state.settings,
+    bgProvider: els.bgProvider.value,
+    siliconKey: els.siliconKey.value.trim(),
+    siliconModel: els.siliconModel.value.trim() || "black-forest-labs/FLUX.1-schnell",
+  };
+  saveJson(storageKeys.settings, state.settings);
+  els.bgSettingsStatus.textContent = "AI 背景图配置已保存！";
+  renderVnStage();
+}
+
 async function refreshGeminiExplanation() {
   const sentence = currentSentence();
   if (!sentence) return;
@@ -1607,6 +1668,10 @@ els.vnModeToggle.addEventListener("change", (event) => {
   renderVnStage();
 });
 els.saveGeminiButton.addEventListener("click", saveGeminiSettings);
+els.saveBgSettingsButton.addEventListener("click", saveBgSettings);
+els.bgProvider.addEventListener("change", (event) => {
+  updateBgSettingsUI(event.target.value);
+});
 els.explainButton.addEventListener("click", refreshGeminiExplanation);
 els.answerInput.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {

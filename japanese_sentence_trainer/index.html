@@ -110,6 +110,33 @@
           </div>
         </details>
 
+        <details class="settings-details">
+          <summary>
+            <h3>AI 背景图配置</h3>
+            <button id="saveBgSettingsButton" type="button" onclick="event.stopPropagation()">保存</button>
+          </summary>
+          <div class="settings-content">
+            <div class="voice-settings">
+              <label>
+                <span>图源</span>
+                <select id="bgProvider">
+                  <option value="pollinations">Pollinations AI (免费免 Key)</option>
+                  <option value="siliconflow">硅基流动 (极速需 Key)</option>
+                </select>
+              </label>
+              <label id="siliconKeyLabel">
+                <span>API Key</span>
+                <input id="siliconKey" autocomplete="off" placeholder="硅基流动 API Key" type="password" />
+              </label>
+              <label id="siliconModelLabel">
+                <span>Model</span>
+                <input id="siliconModel" autocomplete="off" placeholder="black-forest-labs/FLUX.1-schnell" />
+              </label>
+              <p id="bgSettingsStatus">注册硅基流动送 14 元额度，生成一次只需约 1 秒，画质更精致、响应更稳定。</p>
+            </div>
+          </div>
+        </details>
+
       </aside>
 
       <main class="practice-area">
