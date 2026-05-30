@@ -119,6 +119,8 @@ const els = {
   geminiStatus: document.querySelector("#geminiStatus"),
   vnModeToggle: document.querySelector("#vnModeToggle"),
   vnStage: document.querySelector("#vnStage"),
+  vnBgA: document.querySelector("#vnBgA"),
+  vnBgB: document.querySelector("#vnBgB"),
   charLeft: document.querySelector("#charLeft"),
   charRight: document.querySelector("#charRight"),
   vnPrevGroupBtn: document.querySelector("#vnPrevGroupBtn"),
@@ -413,12 +415,81 @@ const courseBackgrounds = {
   social: "assets/backgrounds/social.png",
 };
 
-function renderVnStage() {
+let currentVnBgUrl = "";
+
+async function renderVnStage() {
   const isVn = !!state.settings.vnMode;
   document.body.classList.toggle("vn-active", isVn);
-  if (isVn) {
+  if (!isVn) return;
+
+  const sentence = currentSentence();
+  if (!sentence) {
     const bgUrl = courseBackgrounds[state.course] || "assets/backgrounds/dailylife.png";
-    els.vnStage.style.backgroundImage = `url('${bgUrl}')`;
+    applyVnBackground(bgUrl);
+    return;
+  }
+
+  const dialogueId = sentence.dialogueId || sentence.id;
+  const topicName = sentence.topicName || getLessonTitle(sentence);
+
+  try {
+    const response = await fetch("/api/generate-background", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dialogueId, topicName })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.url) {
+        applyVnBackground(data.url);
+        preloadNextGroupBackground();
+        return;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch dynamic background, falling back:", error);
+  }
+
+  const bgUrl = courseBackgrounds[state.course] || "assets/backgrounds/dailylife.png";
+  applyVnBackground(bgUrl);
+}
+
+function applyVnBackground(imgUrl) {
+  if (currentVnBgUrl === imgUrl) return;
+  currentVnBgUrl = imgUrl;
+
+  const activeLayer = els.vnBgA.classList.contains("is-active") ? els.vnBgA : els.vnBgB;
+  const inactiveLayer = activeLayer === els.vnBgA ? els.vnBgB : els.vnBgA;
+
+  const img = new Image();
+  img.onload = () => {
+    inactiveLayer.style.backgroundImage = `url('${imgUrl}')`;
+    inactiveLayer.classList.add("is-active");
+    activeLayer.classList.remove("is-active");
+  };
+  img.src = imgUrl;
+}
+
+async function preloadNextGroupBackground() {
+  const groups = getCourseGroups();
+  const currentGroupIndex = getCurrentGroupIndex(groups);
+  const nextGroup = groups[currentGroupIndex + 1];
+  
+  if (nextGroup && nextGroup.length > 0) {
+    const nextSentence = nextGroup[0];
+    const dialogueId = nextSentence.dialogueId || nextSentence.id;
+    const topicName = nextSentence.topicName || getLessonTitle(nextSentence);
+    
+    try {
+      fetch("/api/generate-background", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dialogueId, topicName })
+      });
+    } catch (err) {
+      // Quietly swallow preloading errors
+    }
   }
 }
 
@@ -503,6 +574,7 @@ function renderTrainer() {
     markSentenceAnswered(sentence);
   }
   renderGroupTranslation();
+  renderVnStage();
 }
 
 function getLessonTitle(sentence) {

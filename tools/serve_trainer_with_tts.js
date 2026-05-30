@@ -2,6 +2,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const { generateBackground } = require("./generate_bg_helper");
 
 const root = path.resolve(__dirname, "..");
 const host = "127.0.0.1";
@@ -31,6 +32,10 @@ http
       }
       if (url.pathname === "/api/gemini-explain") {
         await handleGeminiExplain(request, response);
+        return;
+      }
+      if (url.pathname === "/api/generate-background") {
+        await handleGenerateBackground(request, response);
         return;
       }
       serveStatic(url.pathname, response);
@@ -249,4 +254,32 @@ function readBody(request) {
     request.on("end", () => resolve(body));
     request.on("error", reject);
   });
+}
+
+async function handleGenerateBackground(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  try {
+    const body = JSON.parse(await readBody(request));
+    const dialogueId = String(body.dialogueId || "").trim();
+    const topicName = String(body.topicName || "").trim();
+
+    if (!dialogueId || !topicName) {
+      response.writeHead(400);
+      response.end("Missing dialogueId or topicName");
+      return;
+    }
+
+    const webPath = await generateBackground(dialogueId, topicName);
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ success: true, url: webPath }));
+  } catch (error) {
+    console.error("Failed to handle generate-background request:", error);
+    response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end(error.message || "Internal server error");
+  }
 }

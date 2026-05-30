@@ -934,7 +934,6 @@ textarea:focus {
    二次元立绘与视觉小说模式 (Visual Novel Mode)
    ========================================== */
 
-/* 默认隐藏背景舞台 */
 .vn-stage {
   display: none;
   position: fixed;
@@ -944,9 +943,35 @@ textarea:focus {
   height: 100vh;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden; /* 防止 Ken Burns 动画缩放导致溢出 */
+}
+
+/* 渐变背景渲染层与微镜呼吸动效 */
+.vn-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-size: cover;
   background-position: center;
-  transition: background-image 1.0s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: opacity 1.5s ease-in-out;
+  opacity: 0;
+  z-index: 1;
+}
+
+.vn-bg-layer.is-active {
+  opacity: 1;
+  animation: vn-bg-breath 35s infinite alternate ease-in-out;
+}
+
+@keyframes vn-bg-breath {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.06) translate(0.4%, 0.2%);
+  }
 }
 
 /* 视觉小说激活状态样式集 */
