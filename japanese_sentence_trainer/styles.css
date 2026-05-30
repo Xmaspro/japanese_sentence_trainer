@@ -950,19 +950,19 @@ textarea:focus {
 }
 
 /* 视觉小说激活状态样式集 */
-.app-shell.vn-active {
+body.vn-active .app-shell {
   background: transparent !important;
   position: relative;
 }
 
-.app-shell.vn-active .vn-stage {
+body.vn-active .vn-stage {
   display: block;
 }
 
 /* 侧边栏与主练习区毛玻璃模糊滤镜 */
-.app-shell.vn-active .sidebar,
-.app-shell.vn-active .practice-area,
-.app-shell.vn-active .coach-panel {
+body.vn-active .sidebar,
+body.vn-active .practice-area,
+body.vn-active .coach-panel {
   background: rgba(15, 23, 42, 0.45) !important;
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
@@ -972,60 +972,60 @@ textarea:focus {
 }
 
 /* 确保文字颜色在暗底毛玻璃下清晰可读 */
-.app-shell.vn-active h1,
-.app-shell.vn-active h2,
-.app-shell.vn-active h3,
-.app-shell.vn-active .eyebrow,
-.app-shell.vn-active .chat-bubble strong,
-.app-shell.vn-active .course-title,
-.app-shell.vn-active .section-head h3,
-.app-shell.vn-active label span {
+body.vn-active h1,
+body.vn-active h2,
+body.vn-active h3,
+body.vn-active .eyebrow,
+body.vn-active .chat-bubble strong,
+body.vn-active .course-title,
+body.vn-active .section-head h3,
+body.vn-active label span {
   color: #ffffff !important;
 }
 
-.app-shell.vn-active .course-button {
+body.vn-active .course-button {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.05);
   color: #cbd5e1;
 }
 
-.app-shell.vn-active .course-button.is-active {
+body.vn-active .course-button.is-active {
   background: rgba(16, 185, 129, 0.3);
   color: #ffffff;
   border-color: var(--accent);
 }
 
-.app-shell.vn-active .chat-bubble.from-a {
+body.vn-active .chat-bubble.from-a {
   background: rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-.app-shell.vn-active .chat-bubble.from-b {
+body.vn-active .chat-bubble.from-b {
   background: rgba(14, 165, 233, 0.15) !important;
   color: #e0f2fe !important;
   border: 1px solid rgba(14, 165, 233, 0.2) !important;
 }
 
-.app-shell.vn-active .chat-bubble.is-active {
+body.vn-active .chat-bubble.is-active {
   background: rgba(16, 185, 129, 0.45) !important;
   border-color: var(--accent) !important;
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
   color: #ffffff !important;
 }
 
-.app-shell.vn-active textarea {
+body.vn-active textarea {
   background: rgba(15, 23, 42, 0.6) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;
 }
 
-.app-shell.vn-active textarea:focus {
+body.vn-active textarea:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
 }
 
-.app-shell.vn-active .explain-item {
+body.vn-active .explain-item {
   background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
@@ -1101,21 +1101,21 @@ textarea:focus {
 
 /* 桌面端宽度居中，为两侧立绘留出完美视觉空间 */
 @media (min-width: 821px) {
-  .app-shell.vn-active {
+  body.vn-active .app-shell {
     display: grid;
     /* 继承基础 .app-shell 的三列/双列响应式布局，仅限制高度与隐藏溢出以防滚动条冲突 */
     height: 100vh;
     overflow: hidden;
   }
   
-  .app-shell.vn-active .sidebar,
-  .app-shell.vn-active .coach-panel {
+  body.vn-active .sidebar,
+  body.vn-active .coach-panel {
     height: 100vh;
     overflow-y: auto;
     z-index: 10;
   }
   
-  .app-shell.vn-active .practice-area {
+  body.vn-active .practice-area {
     max-width: 850px;
     margin: 0 auto;
     width: 100%;
@@ -1128,10 +1128,10 @@ textarea:focus {
 
 /* 响应式移动端处理 */
 @media (max-width: 820px) {
-  .app-shell.vn-active .vn-character {
+  body.vn-active .vn-character {
     display: none !important; /* 移动端屏幕狭窄，完全隐藏角色立绘以保证舒适练习 */
   }
-  .app-shell.vn-active .vn-stage {
+  body.vn-active .vn-stage {
     position: absolute;
     height: 100%;
   }

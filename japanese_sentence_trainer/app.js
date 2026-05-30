@@ -408,7 +408,7 @@ const courseBackgrounds = {
 
 function renderVnStage() {
   const isVn = !!state.settings.vnMode;
-  els.appShell.classList.toggle("vn-active", isVn);
+  document.body.classList.toggle("vn-active", isVn);
   if (isVn) {
     const bgUrl = courseBackgrounds[state.course] || "assets/backgrounds/dailylife.png";
     els.vnStage.style.backgroundImage = `url('${bgUrl}')`;
