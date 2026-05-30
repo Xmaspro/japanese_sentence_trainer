@@ -1287,16 +1287,76 @@ function formatDialogueForGemini(sentence) {
 }
 
 function explanationToHtml(text) {
-  const paragraphs = String(text || "")
-    .split(/\n+/)
-    .filter(Boolean)
+  let inList = false;
+  
+  const htmlLines = String(text || "")
+    .split(/\n/)
     .map((line) => {
-      let escaped = escapeHtml(line);
+      let trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) {
+          inList = false;
+          return "</ul>";
+        }
+        return "";
+      }
+      
+      // Escape HTML to prevent injection, but allow our custom formatting later
+      let escaped = escapeHtml(trimmed);
+      
+      // Bold text **bold**
       escaped = escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      return `<p style="margin: 0 0 10px 0; line-height: 1.6; font-size: 15px; color: var(--muted);">${escaped}</p>`;
+      
+      // Headings ### or ## or #
+      if (escaped.startsWith("### ")) {
+        const headerText = escaped.substring(4);
+        if (inList) {
+          inList = false;
+          return "</ul>" + `<h3 style="margin: 18px 0 10px 0; font-size: 16px; color: var(--ink); font-weight: bold; border-bottom: 1px dashed var(--line); padding-bottom: 6px;">${headerText}</h3>`;
+        }
+        return `<h3 style="margin: 18px 0 10px 0; font-size: 16px; color: var(--ink); font-weight: bold; border-bottom: 1px dashed var(--line); padding-bottom: 6px;">${headerText}</h3>`;
+      }
+      if (escaped.startsWith("## ")) {
+        const headerText = escaped.substring(3);
+        if (inList) {
+          inList = false;
+          return "</ul>" + `<h4 style="margin: 20px 0 12px 0; font-size: 17px; color: var(--ink); font-weight: bold;">${headerText}</h4>`;
+        }
+        return `<h4 style="margin: 20px 0 12px 0; font-size: 17px; color: var(--ink); font-weight: bold;">${headerText}</h4>`;
+      }
+      if (escaped.startsWith("# ")) {
+        const headerText = escaped.substring(2);
+        if (inList) {
+          inList = false;
+          return "</ul>" + `<h4 style="margin: 22px 0 14px 0; font-size: 18px; color: var(--ink); font-weight: bold;">${headerText}</h4>`;
+        }
+        return `<h4 style="margin: 22px 0 14px 0; font-size: 18px; color: var(--ink); font-weight: bold;">${headerText}</h4>`;
+      }
+      
+      // Lists - or *
+      if (escaped.startsWith("- ") || escaped.startsWith("* ") || escaped.startsWith("• ")) {
+        const content = escaped.substring(2);
+        if (!inList) {
+          inList = true;
+          return `<ul style="margin: 6px 0; padding-left: 20px; list-style-type: disc;"><li style="margin: 4px 0; line-height: 1.6; font-size: 14.5px; color: var(--muted);">${content}</li>`;
+        }
+        return `<li style="margin: 4px 0; line-height: 1.6; font-size: 14.5px; color: var(--muted);">${content}</li>`;
+      }
+      
+      // Regular paragraph
+      if (inList) {
+        inList = false;
+        return "</ul>" + `<p style="margin: 0 0 10px 0; line-height: 1.65; font-size: 14.5px; color: var(--muted);">${escaped}</p>`;
+      }
+      return `<p style="margin: 0 0 10px 0; line-height: 1.65; font-size: 14.5px; color: var(--muted);">${escaped}</p>`;
     })
-    .join("");
-  return `<div class="explain-item" style="padding: 16px; border-radius: 12px; line-height: 1.6;">${paragraphs}</div>`;
+    .filter(Boolean);
+    
+  if (inList) {
+    htmlLines.push("</ul>");
+  }
+  
+  return `<div class="explain-item" style="padding: 16px; border-radius: 12px; line-height: 1.65;">${htmlLines.join("")}</div>`;
 }
 
 function getExplanationCacheKey(sentence) {

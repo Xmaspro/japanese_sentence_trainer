@@ -36,14 +36,13 @@ async function generateBackground(dialogueId, topicName, firstJa, force = false)
   // 2. Build the optimized visual novel style prompt
   // Target Kyoto Animation soft focus, beautiful visual novel background scenery
   const optimizedTopic = topicName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, "").trim();
-  let prompt = `Kyoto Animation style, visual novel background, soft focus, anime scenery, warm lighting, highly detailed, no characters, ${optimizedTopic}`;
+  const cleanJa = firstJa ? firstJa.replace(/[^\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff0-9a-zA-Z\s，。！？、]/g, "").trim() : "";
 
-  if (firstJa) {
-    // Sanitize Japanese text to remove special symbols and punctuation
-    const cleanJa = firstJa.replace(/[^\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff0-9a-zA-Z\s，。！？、]/g, "").trim();
-    if (cleanJa) {
-      prompt += `, inspired by: ${cleanJa}`;
-    }
+  let prompt;
+  if (cleanJa) {
+    prompt = `Kyoto Animation style, visual novel background, soft focus, anime scenery, warm lighting, highly detailed, no characters, ${cleanJa}, theme of ${optimizedTopic}`;
+  } else {
+    prompt = `Kyoto Animation style, visual novel novel background, soft focus, anime scenery, warm lighting, highly detailed, no characters, ${optimizedTopic}`;
   }
 
   const apiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=576&nologo=true`;
