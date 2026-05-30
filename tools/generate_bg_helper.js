@@ -50,10 +50,29 @@ async function generateBackground(dialogueId, topicName, firstJa, force = false)
 
   console.log(`Generating VN background for [${topicName}] (ID: ${dialogueId})...`);
 
-  // 3. Fetch image from Pollinations AI
-  const response = await fetch(apiUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to generate image from Pollinations AI: ${response.status}`);
+  // 3. Fetch image from Pollinations AI with robust retry mechanism
+  let response;
+  const maxRetries = 3;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      response = await fetch(apiUrl);
+      if (response.ok) {
+        break; // Success!
+      }
+      console.warn(`Pollinations AI returned status ${response.status} (attempt ${attempt}/${maxRetries})`);
+    } catch (fetchErr) {
+      console.warn(`Fetch to Pollinations AI failed: ${fetchErr.message} (attempt ${attempt}/${maxRetries})`);
+    }
+    
+    if (attempt < maxRetries) {
+      const delay = attempt * 800; // Exponential-like backoff
+      console.log(`Retrying background generation in ${delay}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  if (!response || !response.ok) {
+    throw new Error(`Failed to generate image from Pollinations AI after ${maxRetries} attempts: ${response ? response.status : 'Network Error'}`);
   }
 
   const arrayBuffer = await response.arrayBuffer();
