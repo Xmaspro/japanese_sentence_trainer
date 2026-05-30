@@ -73,6 +73,7 @@ const state = {
     correct: 0,
   }),
   mistakes: readJson(storageKeys.mistakes, []),
+  lastPrefetchedDialogueId: null,
 };
 
 const els = {
@@ -148,6 +149,94 @@ function currentSentence() {
   return state.queue[state.index % state.queue.length];
 }
 
+let prefetchAbortController = null;
+
+function getPrefetchSentences() {
+  const groups = getCourseGroups();
+  const currentGroupIndex = getCurrentGroupIndex(groups);
+  const prefetchList = [];
+
+  // Add all sentences in current group
+  const currentGroup = groups[currentGroupIndex];
+  if (currentGroup) {
+    prefetchList.push(...currentGroup);
+  }
+
+  // Add all sentences in next group
+  const nextGroup = groups[currentGroupIndex + 1];
+  if (nextGroup) {
+    prefetchList.push(...nextGroup);
+  }
+
+  return prefetchList;
+}
+
+function triggerVoicevoxPrefetch() {
+  if (state.settings.voiceProvider !== "voicevox") return;
+  const sentence = currentSentence();
+  if (!sentence) return;
+
+  const currentDialogueId = sentence.dialogueId || sentence.id;
+  if (state.lastPrefetchedDialogueId === currentDialogueId) {
+    return;
+  }
+  state.lastPrefetchedDialogueId = currentDialogueId;
+
+  if (prefetchAbortController) {
+    prefetchAbortController.abort();
+  }
+  prefetchAbortController = new AbortController();
+  const signal = prefetchAbortController.signal;
+
+  const prefetchList = getPrefetchSentences();
+  if (!prefetchList.length) return;
+
+  let i = 0;
+  const processNext = () => {
+    if (signal.aborted || i >= prefetchList.length) return;
+
+    const item = prefetchList[i];
+    i++;
+
+    const runPrefetch = async () => {
+      try {
+        const selectedVoice = getSpeakerVoice(state.settings, item.speaker);
+        let speakerId = item.speaker === "B" ? "3" : "2";
+        if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) {
+          speakerId = String(selectedVoice).trim();
+        }
+
+        await fetch("/api/voicevox-tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: item.ja, speaker: Number(speakerId) }),
+          signal,
+        });
+      } catch (err) {
+        // Silently catch errors or aborts
+      }
+
+      if (!signal.aborted) {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(() => {
+            setTimeout(processNext, 800);
+          }, { timeout: 2000 });
+        } else {
+          setTimeout(processNext, 800);
+        }
+      }
+    };
+
+    runPrefetch();
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => processNext(), { timeout: 2000 });
+  } else {
+    setTimeout(processNext, 100);
+  }
+}
+
 function render() {
   ensureProgressDay(state.progress, state.activeDate);
   state.queue = getQueue();
@@ -159,6 +248,7 @@ function render() {
   renderTrainer();
   renderDeck();
   renderExplain();
+  triggerVoicevoxPrefetch();
 }
 
 function renderCourses() {
