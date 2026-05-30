@@ -108,6 +108,7 @@
     return {
       version: 1,
       activeDate: today,
+      coursePositions: {},
       days: {
         [today]: createProgressDay(),
       },
@@ -135,6 +136,12 @@
   function markCorrectAnswer(progress, dateKey, sentenceId) {
     const day = ensureProgressDay(progress, dateKey);
     day.completedIds.add(sentenceId);
+    return progress;
+  }
+
+  function markCoursePosition(progress, courseId, sentenceId) {
+    progress.coursePositions = progress.coursePositions ?? {};
+    if (courseId && sentenceId) progress.coursePositions[courseId] = sentenceId;
     return progress;
   }
 
@@ -262,6 +269,28 @@
     };
   }
 
+  function getResumeIndexForCourse(queue, allItems, progress, courseId) {
+    const savedId = progress?.coursePositions?.[courseId];
+    if (savedId) {
+      const savedIndex = queue.findIndex((item) => item.id === savedId);
+      if (savedIndex >= 0) return savedIndex;
+    }
+
+    const groups = getDialogueGroupsForCourse(allItems, courseId);
+    const completedIds = new Set(
+      Object.values(progress?.days || {}).flatMap((day) => [...(day.completedIds || [])]),
+    );
+    const incompleteGroup = groups.find((group) =>
+      group.length > 0 && !group.every((item) => completedIds.has(item.id)),
+    );
+    if (incompleteGroup?.length) {
+      const firstId = incompleteGroup[0].id;
+      const firstIncompleteIndex = queue.findIndex((item) => item.id === firstId);
+      return firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0;
+    }
+    return 0;
+  }
+
   function getDialogueDisplayText(line, currentItem, mode) {
     if (mode === "dictation" && line?.turnNum != null && currentItem?.turnNum != null && line.turnNum >= currentItem.turnNum) return "？？？";
     if (mode === "dictation" && line?.id && currentItem?.id && line.id === currentItem.id) return "？？？";
@@ -336,6 +365,7 @@
     return {
       version: progress.version,
       activeDate: progress.activeDate,
+      coursePositions: { ...(progress.coursePositions ?? {}) },
       days,
     };
   }
@@ -344,6 +374,7 @@
     const progress = value && typeof value === "object" ? value : createInitialProgress(today);
     progress.version = progress.version ?? 1;
     progress.activeDate = progress.activeDate ?? today;
+    progress.coursePositions = progress.coursePositions ?? {};
     progress.days = progress.days ?? {};
     ensureProgressDay(progress, progress.activeDate);
     for (const dateKey of Object.keys(progress.days)) ensureProgressDay(progress, dateKey);
@@ -359,6 +390,7 @@
     createInitialProgress,
     ensureProgressDay,
     markCorrectAnswer,
+    markCoursePosition,
     markFinishedGroup,
     getCompletionAction,
     buildCalendarDays,
@@ -370,6 +402,7 @@
     getSpeakerVoice,
     summarizeCourseProgress,
     summarizeDialogueGroupProgress,
+    getResumeIndexForCourse,
     buildDailyPool,
     getTodayKey,
     getNextDateKey,

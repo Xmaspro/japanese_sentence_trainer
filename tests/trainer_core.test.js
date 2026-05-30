@@ -6,6 +6,8 @@ const {
   checkPatternAnswer,
   createInitialProgress,
   getCompletionAction,
+  getResumeIndexForCourse,
+  markCoursePosition,
   markCorrectAnswer,
   buildCalendarDays,
   createPracticeGroupsForDay,
@@ -93,6 +95,52 @@ test("progress serializes and restores completed sentence ids", () => {
   const restored = deserializeProgress(serializeProgress(progress), "2026-05-30");
 
   assert.equal(restored.days["2026-05-30"].completedIds.has("sentence-a"), true);
+});
+
+test("progress serializes and restores course positions", () => {
+  const progress = createInitialProgress("2026-05-30");
+  markCoursePosition(progress, "school", "school-002-3");
+
+  const restored = deserializeProgress(serializeProgress(progress), "2026-05-30");
+
+  assert.equal(restored.coursePositions.school, "school-002-3");
+});
+
+test("course resume prefers the saved sentence position", () => {
+  const progress = createInitialProgress("2026-05-30");
+  markCoursePosition(progress, "school", "b2");
+
+  const index = getResumeIndexForCourse(
+    [
+      { id: "a1", scene: "school", dialogueId: "school-001", turnNum: 1 },
+      { id: "b1", scene: "school", dialogueId: "school-002", turnNum: 1 },
+      { id: "b2", scene: "school", dialogueId: "school-002", turnNum: 2 },
+    ],
+    [
+      { id: "a1", scene: "school", dialogueId: "school-001", turnNum: 1 },
+      { id: "b1", scene: "school", dialogueId: "school-002", turnNum: 1 },
+      { id: "b2", scene: "school", dialogueId: "school-002", turnNum: 2 },
+    ],
+    progress,
+    "school",
+  );
+
+  assert.equal(index, 2);
+});
+
+test("course resume falls back to the first incomplete group", () => {
+  const progress = createInitialProgress("2026-05-30");
+  markCorrectAnswer(progress, "2026-05-30", "a1");
+  markCorrectAnswer(progress, "2026-05-30", "a2");
+
+  const items = [
+    { id: "a1", scene: "school", dialogueId: "school-001", turnNum: 1 },
+    { id: "a2", scene: "school", dialogueId: "school-001", turnNum: 2 },
+    { id: "b1", scene: "school", dialogueId: "school-002", turnNum: 1 },
+    { id: "b2", scene: "school", dialogueId: "school-002", turnNum: 2 },
+  ];
+
+  assert.equal(getResumeIndexForCourse(items, items, progress, "school"), 2);
 });
 
 test("completion action moves through groups and stops at next day after final group", () => {
