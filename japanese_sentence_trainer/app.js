@@ -75,6 +75,7 @@ const state = {
   }),
   mistakes: readJson(storageKeys.mistakes, []),
   lastPrefetchedDialogueId: null,
+  currentAudio: null,
 };
 
 const els = {
@@ -961,7 +962,24 @@ async function playUserRecording() {
   await new Audio(state.recordingUrl).play();
 }
 
+function stopCurrentSpeech() {
+  if (state.currentAudio) {
+    try {
+      state.currentAudio.pause();
+      state.currentAudio.currentTime = 0;
+    } catch (e) {
+      // Quietly ignore errors
+    }
+    state.currentAudio = null;
+  }
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
 async function playSentence() {
+  stopCurrentSpeech();
+
   const sentence = currentSentence();
   if (!sentence) return;
   const speaker = sentence.speaker || "A";
@@ -998,6 +1016,8 @@ async function playSentence() {
 }
 
 async function playVoicevoxSpeech(text, speakerId) {
+  stopCurrentSpeech();
+
   const response = await fetch("/api/voicevox-tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1007,13 +1027,19 @@ async function playVoicevoxSpeech(text, speakerId) {
   if (!response.ok) throw new Error(`VOICEVOX Speech failed: ${response.status}`);
 
   const audio = new Audio(URL.createObjectURL(await response.blob()));
-  audio.addEventListener("ended", () => URL.revokeObjectURL(audio.src), { once: true });
+  state.currentAudio = audio;
+  audio.addEventListener("ended", () => {
+    URL.revokeObjectURL(audio.src);
+    if (state.currentAudio === audio) state.currentAudio = null;
+  }, { once: true });
   await audio.play();
   els.voiceStatus.textContent = `VOICEVOX 语音：Speaker ${speakerId}`;
   return audio;
 }
 
 async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVoice) {
+  stopCurrentSpeech();
+
   const region = state.settings.speechRegion.trim();
   const voice = selectedVoice.trim();
   const key = state.settings.speechKey.trim();
@@ -1041,7 +1067,11 @@ async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVo
   if (!response.ok) throw new Error(`Microsoft Speech failed: ${response.status}`);
 
   const audio = new Audio(URL.createObjectURL(await response.blob()));
-  audio.addEventListener("ended", () => URL.revokeObjectURL(audio.src), { once: true });
+  state.currentAudio = audio;
+  audio.addEventListener("ended", () => {
+    URL.revokeObjectURL(audio.src);
+    if (state.currentAudio === audio) state.currentAudio = null;
+  }, { once: true });
   await audio.play();
   els.voiceStatus.textContent = `微软语音：${voice}`;
   return audio;
