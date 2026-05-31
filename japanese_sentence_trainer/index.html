@@ -30,6 +30,22 @@
       <div class="vn-character character-right" id="charRight">
         <img src="assets/characters/zundamon.png" alt="ずんだもん" />
       </div>
+
+      <!-- AI 自由对话对练场景配置模态框 -->
+      <div id="vnAiSetupModal" class="vn-ai-modal" style="display: none;">
+        <div class="vn-modal-content">
+          <h3>🌸 选择口语对练场景</h3>
+          <p>你可以直接使用当前课程场景，也可以自定义输入任何日本生活场景进行实战演练：</p>
+          <div class="modal-options">
+            <button id="vnAiUseCurrentBtn" type="button" class="modal-btn">✨ 使用当前课程场景</button>
+            <div class="custom-input-group">
+              <input type="text" id="vnAiCustomInput" placeholder="输入自定义场景（例：在罗森买水、在京都租和服...）" />
+              <button id="vnAiStartCustomBtn" type="button" class="modal-btn primary">🚀 生成定制任务</button>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="vnAiSetupCloseBtn" type="button">取消</button>
+        </div>
+      </div>
     </div>
 
     <div class="app-shell" id="appShell">
@@ -160,6 +176,12 @@
 
           <div class="chat-thread" id="dialogueThread" aria-label="当前对话"></div>
 
+          <!-- AI 自由对话金边输入区 -->
+          <div id="vnAiInputArea" class="vn-ai-input-area" style="display: none;">
+            <input type="text" id="vnAiTextInput" placeholder="用日语跟角色聊聊吧..." />
+            <button id="vnAiSendBtn" type="button">发送</button>
+          </div>
+
           <!-- 视觉小说控制条 -->
           <div class="vn-controls" id="vnControls">
             <button class="vn-ctrl-btn" id="vnPrevGroupBtn" type="button" title="上一组对话">⏮ 上一组</button>
@@ -167,6 +189,7 @@
             <button class="vn-ctrl-btn" id="vnPlayBtn" type="button" title="重播语音">🔊 语音</button>
             <button class="vn-ctrl-btn" id="vnRecordBtn" type="button" title="录制我的声音">🎙 录音</button>
             <button class="vn-ctrl-btn" id="vnPlayRecordingBtn" type="button" title="播放我的录音" disabled>👤 我的</button>
+            <button class="vn-ctrl-btn" id="vnAiChatBtn" type="button" title="开启与立绘角色的 AI 自由对话">💬 AI 互动</button>
             <button class="vn-ctrl-btn" id="vnRegenBgBtn" type="button" title="重新生成当前背景图">🖼 重生背景</button>
             <button class="vn-ctrl-btn" id="vnNextBtn" type="button" title="下一句">▶ 下一句</button>
             <button class="vn-ctrl-btn" id="vnNextGroupBtn" type="button" title="下一组对话">⏭ 下一组</button>

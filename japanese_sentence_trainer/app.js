@@ -79,6 +79,9 @@ const state = {
   mistakes: readJson(storageKeys.mistakes, []),
   lastPrefetchedDialogueId: null,
   currentAudio: null,
+  aiChatActive: false,
+  aiChatHistory: [],
+  aiMission: { character: "", goal: "", checkpoints: [], completed: [], active: false },
 };
 
 const els = {
@@ -140,6 +143,15 @@ const els = {
   vnRegenBgBtn: document.querySelector("#vnRegenBgBtn"),
   vnNextBtn: document.querySelector("#vnNextBtn"),
   vnNextGroupBtn: document.querySelector("#vnNextGroupBtn"),
+  vnAiSetupModal: document.querySelector("#vnAiSetupModal"),
+  vnAiUseCurrentBtn: document.querySelector("#vnAiUseCurrentBtn"),
+  vnAiCustomInput: document.querySelector("#vnAiCustomInput"),
+  vnAiStartCustomBtn: document.querySelector("#vnAiStartCustomBtn"),
+  vnAiSetupCloseBtn: document.querySelector("#vnAiSetupCloseBtn"),
+  vnAiChatBtn: document.querySelector("#vnAiChatBtn"),
+  vnAiInputArea: document.querySelector("#vnAiInputArea"),
+  vnAiTextInput: document.querySelector("#vnAiTextInput"),
+  vnAiSendBtn: document.querySelector("#vnAiSendBtn"),
 };
 
 function saveJson(key, value) {
@@ -1658,6 +1670,15 @@ els.vnPlayRecordingBtn.addEventListener("click", playUserRecording);
 els.vnRegenBgBtn.addEventListener("click", regenerateCurrentBackground);
 els.vnNextBtn.addEventListener("click", nextSentence);
 els.vnNextGroupBtn.addEventListener("click", nextGroup);
+els.vnAiChatBtn.addEventListener("click", handleAiSetupOrToggle);
+els.vnAiSetupCloseBtn.addEventListener("click", closeAiChatSetup);
+els.vnAiUseCurrentBtn.addEventListener("click", () => startCustomAiChat(""));
+els.vnAiStartCustomBtn.addEventListener("click", () => startCustomAiChat(els.vnAiCustomInput.value));
+els.vnAiSendBtn.addEventListener("click", sendAiChatMessage);
+els.vnAiTextInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") sendAiChatMessage();
+});
+
 els.voiceProvider.addEventListener("change", (event) => {
   updateVoiceSettingsUI(event.target.value);
 });
@@ -1764,6 +1785,462 @@ function makeCharacterDraggable(el) {
       el.style.transform = (el.style.transform + " scaleX(-1)").trim();
     }
   });
+}
+
+/* ==========================================================================
+   AI Roleplay & Custom Speaking Mission Controller Logic
+   ========================================================================== */
+
+async function playAiCharacterSpeech(text, speakerChar) {
+  stopCurrentSpeech();
+  
+  if (state.settings.voiceProvider === "voicevox") {
+    try {
+      const selectedVoice = getSpeakerVoice(state.settings, speakerChar);
+      let speakerId = speakerChar === "B" ? "3" : "2";
+      if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) {
+        speakerId = String(selectedVoice).trim();
+      }
+      const audio = await playVoicevoxSpeech(text, speakerId);
+      animateVnSpeaker(speakerChar, audio);
+      return audio;
+    } catch (error) {
+      els.voiceStatus.textContent = "VOICEVOX 语音失败，已回退到浏览器语音。";
+    }
+  } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
+    try {
+      const audio = await playMicrosoftSpeech(text, getSpeakerVoice(state.settings, speakerChar));
+      animateVnSpeaker(speakerChar, audio);
+      return audio;
+    } catch (error) {
+      els.voiceStatus.textContent = "微软语音失败，已回退到浏览器语音。";
+    }
+  }
+
+  const utterance = playBrowserSpeech(text);
+  if (utterance) {
+    utterance.onstart = () => animateVnSpeaker(speakerChar, null);
+    utterance.onend = () => animateVnSpeaker(null, null);
+    utterance.onerror = () => animateVnSpeaker(null, null);
+  }
+  return null;
+}
+
+function openAiChatSetup() {
+  if (!state.settings.vnMode) {
+    alert("请先开启【二次元立绘模式】，以获得最佳的口语对练沉浸式体验。");
+    return;
+  }
+  if (!state.settings.geminiKey) {
+    alert("请先配置并保存您的 Gemini API Key！");
+    return;
+  }
+  els.vnAiCustomInput.value = "";
+  els.vnAiSetupModal.style.display = "flex";
+}
+
+function closeAiChatSetup() {
+  els.vnAiSetupModal.style.display = "none";
+}
+
+async function startCustomAiChat(customScene = "") {
+  const loadingOverlay = document.createElement("div");
+  loadingOverlay.className = "modal-loading-overlay";
+  loadingOverlay.innerHTML = `
+    <div class="modal-spinner"></div>
+    <p style="font-weight: bold; font-size: 15px; color: #f3d4a2;">🌸 正在基于日本社会文化与礼仪编排关卡...</p>
+    <p style="font-size: 12.5px; color: rgba(255, 255, 255, 0.7); margin-top: -8px;">通常需要 3-5 秒，请稍候</p>
+  `;
+  els.vnAiSetupModal.querySelector(".vn-modal-content").appendChild(loadingOverlay);
+
+  try {
+    let response;
+    if (customScene) {
+      response = await fetch("/api/gemini-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: state.settings.geminiKey,
+          model: state.settings.geminiModel,
+          initCustom: true,
+          sceneDescription: customScene
+        })
+      });
+    } else {
+      // Use current course scene
+      const sentence = currentSentence();
+      const course = courses.find(c => c.id === state.course);
+      const currentDialogue = getCurrentDialogueItems(state.queue, sentence);
+      const linesStr = currentDialogue.map(l => `${l.speaker || ""}: ${l.ja || ""}`).join("\n");
+      const defaultDesc = `主题场景：${course?.label || "日常生活"}\n背景会话：\n${linesStr}`;
+      
+      response = await fetch("/api/gemini-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: state.settings.geminiKey,
+          model: state.settings.geminiModel,
+          initCustom: true,
+          sceneDescription: defaultDesc
+        })
+      });
+    }
+
+    if (!response.ok) throw new Error(`Gemini Init Failed: ${response.status}`);
+    const data = await response.json();
+    if (data.success && data.result) {
+      const missionData = data.result;
+      
+      // Initialize AI Mission State
+      state.aiMission = {
+        character: missionData.character_name || "ずんだもん",
+        characterDesc: missionData.character_desc || "",
+        goal: missionData.mission_goal || "完成口语对话",
+        checkpoints: missionData.checkpoints || [],
+        completed: [],
+        active: true
+      };
+
+      state.aiChatActive = true;
+      state.aiChatHistory = [
+        {
+          role: "model",
+          ja: missionData.first_utterance,
+          zh: msgTextClean(missionData.first_utterance_zh),
+          feedback: ""
+        }
+      ];
+
+      // Hide setup modal and loading
+      closeAiChatSetup();
+      
+      // Configure controls UI
+      els.vnAiChatBtn.textContent = "🚪 退出互动";
+      els.vnAiChatBtn.classList.add("ai-active");
+      
+      // Disable standard curriculum navigations
+      els.vnPrevGroupBtn.disabled = true;
+      els.vnPrevBtn.disabled = true;
+      els.vnNextBtn.disabled = true;
+      els.vnNextGroupBtn.disabled = true;
+      els.vnRegenBgBtn.disabled = true;
+
+      // Show AI input area
+      els.vnAiInputArea.style.display = "flex";
+      els.vnAiTextInput.value = "";
+      els.vnAiTextInput.focus();
+
+      // Render the AI session view
+      renderAiChatSession();
+      
+      // Synthesize first welcome voice
+      setTimeout(() => {
+        playAiCharacterSpeech(missionData.first_utterance, "B");
+      }, 500);
+    }
+  } catch (error) {
+    alert("AI 场景任务生成失败，请检查 Gemini Key 后重试。\n错误: " + error.message);
+  } finally {
+    loadingOverlay.remove();
+  }
+}
+
+function msgTextClean(text) {
+  return String(text || "").trim();
+}
+
+function renderAiChatSession() {
+  if (!state.aiChatActive) return;
+
+  // 1. Render Floating Checklist HUD at the top of dialogue area
+  let checklistHtml = `
+    <div class="vn-ai-checklist" id="vnAiChecklist">
+      <h4>🌸 口语挑战任务：${state.aiMission.character} 的对练会话</h4>
+      <p class="vn-ai-checklist-goal"><strong>任务目标：</strong>${state.aiMission.goal}</p>
+      <ul class="vn-ai-checklist-steps">
+  `;
+
+  state.aiMission.checkpoints.forEach((cp, idx) => {
+    const isDone = state.aiMission.completed.includes(idx + 1);
+    const doneClass = isDone ? " is-completed" : "";
+    const icon = isDone ? "✅" : "⬜";
+    checklistHtml += `
+      <li class="vn-ai-checklist-step${doneClass}">
+        <span class="vn-ai-checklist-step-bullet">${icon}</span>
+        <span>${escapeHtml(cp)}</span>
+      </li>
+    `;
+  });
+
+  checklistHtml += `
+      </ul>
+    </div>
+  `;
+
+  // 2. Render Chat History Bubbles
+  let bubblesHtml = "";
+  state.aiChatHistory.forEach((msg, idx) => {
+    const side = msg.role === "user" ? " from-a" : " from-b";
+    const speakerName = msg.role === "user" ? "四国めたん" : state.aiMission.character;
+    
+    // Check if dynamic audio comparison URLs are available
+    let voiceBtn = "";
+    if (msg.role === "user" && msg.userAudioUrl) {
+      voiceBtn = `<button type="button" class="chat-bubble-audio-btn" onclick="playUserHistoryAudio(${idx})">👤 听我的发音</button>`;
+    } else if (msg.role === "model" && msg.ja) {
+      voiceBtn = `<button type="button" class="chat-bubble-audio-btn" onclick="playAiHistoryAudio(${idx})">🔊 听原生朗读</button>`;
+    }
+
+    bubblesHtml += `
+      <div class="chat-bubble${side}" style="margin: 8px 0; max-width: 85%; align-self: ${msg.role === 'user' ? 'flex-end' : 'flex-start'}">
+        <strong>${escapeHtml(speakerName)}</strong>
+        <span>${escapeHtml(msg.ja)} ${voiceBtn}</span>
+      </div>
+    `;
+
+    // Render Grammar/Etiquette Feedback directly under model bubble
+    if (msg.role === "model" && msg.feedback) {
+      bubblesHtml += `
+        <div class="vn-ai-feedback">
+          <div class="vn-ai-feedback-title">💡 老师指导与纠错：</div>
+          <div>${escapeHtml(msg.feedback)}</div>
+        </div>
+      `;
+    }
+  });
+
+  els.dialogueThread.innerHTML = checklistHtml + `<div style="display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 10px;">${bubblesHtml}</div>`;
+  
+  // Scroll to bottom
+  els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
+}
+
+window.playAiHistoryAudio = function(index) {
+  const msg = state.aiChatHistory[index];
+  if (!msg || !msg.ja) return;
+  
+  // Stop existing speech and highlight playing state
+  stopCurrentSpeech();
+  
+  const btns = document.querySelectorAll(".chat-bubble-audio-btn");
+  btns.forEach(b => b.classList.remove("is-playing"));
+  
+  playAiCharacterSpeech(msg.ja, "B").then((audio) => {
+    if (audio) {
+      const activeBtn = document.querySelectorAll(".chat-bubble-audio-btn")[index] || document.querySelectorAll(`.chat-bubble-audio-btn`)[0];
+      if (activeBtn) {
+        activeBtn.classList.add("is-playing");
+        audio.addEventListener("ended", () => activeBtn.classList.remove("is-playing"), { once: true });
+      }
+    }
+  });
+};
+
+window.playUserHistoryAudio = function(index) {
+  const msg = state.aiChatHistory[index];
+  if (!msg || !msg.userAudioUrl) return;
+  
+  stopCurrentSpeech();
+  
+  const audio = new Audio(msg.userAudioUrl);
+  state.currentAudio = audio;
+  
+  const btns = document.querySelectorAll(".chat-bubble-audio-btn");
+  btns.forEach(b => b.classList.remove("is-playing"));
+  
+  const activeBtn = document.querySelectorAll(".chat-bubble-audio-btn")[index] || document.querySelectorAll(`.chat-bubble-audio-btn`)[0];
+  if (activeBtn) {
+    activeBtn.classList.add("is-playing");
+    audio.addEventListener("ended", () => activeBtn.classList.remove("is-playing"), { once: true });
+  }
+  
+  audio.play().catch(err => console.error("Playback error:", err));
+};
+
+async function sendAiChatMessage() {
+  if (!state.aiChatActive) return;
+  
+  const rawText = els.vnAiTextInput.value.trim();
+  let userVoiceBlobUrl = state.recordingUrl || "";
+  
+  // Clean text input and local recording states
+  els.vnAiTextInput.value = "";
+  state.recordingUrl = "";
+  els.vnPlayRecordingBtn.disabled = true;
+  if (els.playRecordingButton) els.playRecordingButton.disabled = true;
+  
+  if (!rawText) return;
+
+  // Append user message to history
+  state.aiChatHistory.push({
+    role: "user",
+    ja: rawText,
+    zh: "",
+    feedback: "",
+    userAudioUrl: userVoiceBlobUrl
+  });
+
+  // Render typing bubble for AI
+  renderAiChatSession();
+  
+  const typingSkeleton = document.createElement("div");
+  typingSkeleton.className = "chat-bubble from-b";
+  typingSkeleton.style.margin = "8px 0";
+  typingSkeleton.style.maxWidth = "85%";
+  typingSkeleton.style.alignSelf = "flex-start";
+  typingSkeleton.innerHTML = `
+    <strong>${escapeHtml(state.aiMission.character)}</strong>
+    <span>
+      <span class="vn-typing-dot"></span>
+      <span class="vn-typing-dot"></span>
+      <span class="vn-typing-dot"></span>
+    </span>
+  `;
+  els.dialogueThread.querySelector("div").appendChild(typingSkeleton);
+  els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
+
+  try {
+    // Format conversation history payload in Gemini format
+    const historyPayload = state.aiChatHistory.map(msg => ({
+      role: msg.role,
+      text: msg.ja
+    }));
+
+    const response = await fetch("/api/gemini-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: state.settings.geminiKey,
+        model: state.settings.geminiModel,
+        history: historyPayload,
+        mission: {
+          character: state.aiMission.character,
+          goal: state.aiMission.goal,
+          checkpoints: state.aiMission.checkpoints
+        }
+      })
+    });
+
+    if (!response.ok) throw new Error(`Gemini Chat Failed: ${response.status}`);
+    const data = await response.json();
+    
+    if (data.success && data.result) {
+      const aiReply = data.result;
+      
+      // Update dynamic checkpoint ticks
+      if (aiReply.completed_checkpoints && Array.isArray(aiReply.completed_checkpoints)) {
+        aiReply.completed_checkpoints.forEach(idx => {
+          if (!state.aiMission.completed.includes(idx)) {
+            state.aiMission.completed.push(idx);
+          }
+        });
+      }
+
+      // Append model message to history
+      state.aiChatHistory.push({
+        role: "model",
+        ja: aiReply.ja,
+        zh: aiReply.zh,
+        feedback: aiReply.feedback
+      });
+
+      // Remove typing bubble and render session
+      typingSkeleton.remove();
+      renderAiChatSession();
+
+      // Trigger Standee speech synthesis and animations
+      playAiCharacterSpeech(aiReply.ja, "B");
+
+      // Gamified sparkling celebration upon complete mission completion
+      if (aiReply.mission_completed) {
+        triggerMissionCompletedCelebration();
+      }
+    }
+  } catch (error) {
+    if (typingSkeleton.parentNode) typingSkeleton.remove();
+    state.aiChatHistory.push({
+      role: "model",
+      ja: "（AI 连接中断，请检查 API Key 或重试...）",
+      zh: "",
+      feedback: "错误详情：" + error.message
+    });
+    renderAiChatSession();
+  }
+}
+
+function triggerMissionCompletedCelebration() {
+  const overlay = document.createElement("div");
+  overlay.style.position = "absolute";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(224, 169, 109, 0.15)";
+  overlay.style.zIndex = "3000";
+  overlay.style.display = "flex";
+  overlay.style.flexDirection = "column";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.animation = "vnModalFadeIn 0.5s ease-out";
+  overlay.innerHTML = `
+    <div style="background: rgba(26, 32, 73, 0.95); border: 3px double #e0a96d; box-shadow: 0 0 30px #e0a96d; border-radius: 16px; padding: 32px; text-align: center; max-width: 400px; color: #fff;">
+      <h2 style="color: #f3d4a2; margin: 0 0 12px 0; font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #e0a96d;">✨ 任务大成功！ ✨</h2>
+      <p style="font-size: 14.5px; line-height: 1.6; margin-bottom: 20px;">おめでとうございます！你已成功达成了所有的逻辑口语关卡，完美完成了本次生活场景训练！</p>
+      <button id="vnAiCelebrationCloseBtn" type="button" class="modal-btn primary" style="width: auto; padding: 10px 24px;">真棒！</button>
+    </div>
+  `;
+  els.vnStage.appendChild(overlay);
+
+  // Play a beautiful sparkling cherry blossom overlay effect
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement("span");
+    p.className = "petal";
+    p.textContent = "🌸";
+    p.style.position = "absolute";
+    p.style.left = Math.random() * 100 + "%";
+    p.style.top = Math.random() * 100 + "%";
+    p.style.fontSize = Math.random() * 15 + 10 + "px";
+    p.style.animation = `petal-fall ${Math.random() * 3 + 2}s linear infinite`;
+    overlay.appendChild(p);
+  }
+
+  document.querySelector("#vnAiCelebrationCloseBtn").addEventListener("click", () => {
+    overlay.remove();
+    exitAiChat();
+  }, { once: true });
+}
+
+function exitAiChat() {
+  stopCurrentSpeech();
+
+  state.aiChatActive = false;
+  state.aiChatHistory = [];
+  state.aiMission = { character: "", goal: "", checkpoints: [], completed: [], active: false };
+
+  // Restore button labels & highlight
+  els.vnAiChatBtn.textContent = "💬 AI 互动";
+  els.vnAiChatBtn.classList.remove("ai-active");
+
+  // Re-enable curriculum controls
+  els.vnPrevGroupBtn.disabled = false;
+  els.vnPrevBtn.disabled = false;
+  els.vnNextBtn.disabled = false;
+  els.vnNextGroupBtn.disabled = false;
+  els.vnRegenBgBtn.disabled = false;
+
+  // Hide overlay input
+  els.vnAiInputArea.style.display = "none";
+  
+  // Re-render core training interface
+  renderTrainer();
+}
+
+function handleAiSetupOrToggle() {
+  if (state.aiChatActive) {
+    exitAiChat();
+  } else {
+    openAiChatSetup();
+  }
 }
 
 async function initApp() {

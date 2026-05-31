@@ -34,6 +34,10 @@ http
         await handleGeminiExplain(request, response);
         return;
       }
+      if (url.pathname === "/api/gemini-chat") {
+        await handleGeminiChat(request, response);
+        return;
+      }
       if (url.pathname === "/api/generate-background") {
         await handleGenerateBackground(request, response);
         return;
@@ -288,6 +292,141 @@ async function handleGenerateBackground(request, response) {
     response.end(JSON.stringify({ success: true, url: webPath }));
   } catch (error) {
     console.error("Failed to handle generate-background request:", error);
+    response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end(error.message || "Internal server error");
+  }
+}
+
+async function handleGeminiChat(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  try {
+    const body = JSON.parse(await readBody(request));
+    const key = String(body.key || "").trim();
+    const model = String(body.model || "gemini-1.5-flash").trim();
+    const initCustom = !!body.initCustom;
+    const sceneDescription = String(body.sceneDescription || "").trim();
+    const history = body.history || [];
+    const mission = body.mission || null;
+
+    if (!key) {
+      response.writeHead(400);
+      response.end("Missing Gemini Key");
+      return;
+    }
+
+    let payload;
+    let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+
+    if (initCustom) {
+      const promptText = `你是一名专业的日语口语教学大纲设计师。请根据用户输入的【意向生活场景】，结合日本社会文化、礼仪规范和日常生活习惯，为用户精心编排设计一个情景化、任务驱动型的日语口语角色扮演通关任务。
+
+场景描述：
+"${sceneDescription}"
+
+你必须设计：
+1. 角色人设（例如：如果是居酒屋，角色是店员ずんだもん/Zundamon，音色甜美或带のだ等可爱口癖）。
+2. 通关任务目标（需要明确融入日本社会文化/礼仪习俗的背景说明，提示用户应该注意什么，字数在150字以内）。
+3. 逻辑关卡（Checkpoints）：根据这个场景的复杂程度，动态设计 3 到 5 个【口语表达逻辑关卡】（关卡数视场景而定，通常3-5个为佳）。例如：第一步询问意愿，第二步提出特定要求或说明，第三步应对突发情况，第四步支付并用敬语表达感谢。
+4. 角色开局说的第一句话（日文及中文翻译，必须十分自然、口语化，不超过2句）。
+
+请你必须仅返回一个合法的 JSON 格式对象，不要包含任何 markdown 格式标记（如 \`\`\`json ）。
+该 JSON 必须符合以下严格的 schema 格式：
+{
+  "character_name": "角色名字（如：店员/医生/中介/ずんだもん）",
+  "character_desc": "简短人设说明",
+  "mission_goal": "详细的通关任务目标（含日本文化/社交礼仪说明）",
+  "checkpoints": [
+    "阶段 1：[逻辑描述] (如：向店员表达免税需求，并出示护照)",
+    "阶段 2：[逻辑描述]...",
+    "阶段 3：[逻辑描述]..."
+  ],
+  "first_utterance": "角色开口第一句话的日语（如：いらっしゃいませ！免税手続きですね。パスポートを拝见できますか？）",
+  "first_utterance_zh": "第一句话的中文翻译"
+}`;
+
+      payload = {
+        contents: [
+          {
+            parts: [{ text: promptText }]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+    } else {
+      if (!mission) {
+        response.writeHead(400);
+        response.end("Missing active mission context");
+        return;
+      }
+
+      const systemInstructionText = `你正在扮演二次元虚拟角色：${mission.character}。
+当前会话的口语通关任务是：${mission.goal}。
+本次对话设置了以下 ${mission.checkpoints.length} 个逻辑关卡（Checkpoints）：
+${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
+
+你的对话对象是 Speaker A（由真实用户扮演）。
+请严格进行日语口语角色扮演。你的回复必须契合你当前的角色设定。你的日语必须十分口语化、生动自然、简短（控制在2-3句以内，不超过50个日语字符）。
+
+请务必注意：
+1. 评估用户刚才发给你的那句话是否在逻辑上和语言表达上达成/推动了上述某个逻辑关卡。
+2. 评估用户日语表达的语法与礼仪得体程度。如果不符合日本的社会习惯或敬语规则，请在 feedback 字段中给出极简纠错。
+3. 请必须仅返回一个合法的 JSON 对象，不要包含 markdown 格式标记，JSON 字段如下：
+{
+  "ja": "你（AI角色）用日语口语说出的下一句自然回复（2-3句内）",
+  "zh": "该日语回复的中文翻译",
+  "feedback": "针对用户刚才那一句话的极简中文语法/礼仪纠错、表达优化建议（如果没有错，可以写一句鼓励的话或为空，控制在50字内）",
+  "completed_checkpoints": [1, 2], // 数组。列出用户已经顺利达成的关卡索引（1-indexed，例如达成关卡1则写入 1。可以包含之前已完成的和刚刚新增完成的）
+  "mission_completed": false // 布尔值。如果所有指定的关卡都已被用户达成，且对话圆满结束，则为 true
+}`;
+
+      const contents = history.map(item => ({
+        role: item.role === "user" ? "user" : "model",
+        parts: [{ text: item.text }]
+      }));
+
+      payload = {
+        contents,
+        systemInstruction: {
+          parts: [{ text: systemInstructionText }]
+        },
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+    }
+
+    const geminiResponse = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      response.writeHead(geminiResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
+      response.end(errText);
+      return;
+    }
+
+    const data = await geminiResponse.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+    
+    let cleanText = rawText.trim();
+    if (cleanText.startsWith("```")) {
+      cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+    }
+
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ success: true, result: JSON.parse(cleanText) }));
+  } catch (error) {
+    console.error("Gemini chat error:", error);
     response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
     response.end(error.message || "Internal server error");
   }
