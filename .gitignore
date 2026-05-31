@@ -1,4 +1,5 @@
 .DS_Store
 node_modules/
 tools/.voicevox_cache/
+tools/.microsoft_cache/
 japanese_sentence_trainer/assets/backgrounds/generated/

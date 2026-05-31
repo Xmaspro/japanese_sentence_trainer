@@ -24,6 +24,14 @@ const {
   getDialogueGroupsForCourse,
   summarizeDialogueGroupProgress,
 } = window.JapaneseSentenceTrainerCore;
+const {
+  isAiChatReplyAccepted,
+  buildAcceptedAiHistoryPayload,
+} = window.JapaneseSentenceTrainerAiChat;
+const {
+  getSpeechObjectUrl: getCachedSpeechObjectUrl,
+  trimSpeechBlobCache: trimCachedSpeechBlobCache,
+} = window.JapaneseSentenceTrainerSpeechCache;
 
 const modeLabels = {
   dictation: ["听写", "听到的日语"],
@@ -1149,34 +1157,11 @@ async function playVoicevoxSpeech(text, speakerId) {
 }
 
 async function getSpeechObjectUrl(provider, text, voice, blobFactory) {
-  const key = `${provider}:${voice}:${text}`;
-  const cached = state.speechBlobCache.get(key);
-  if (cached?.url) return cached.url;
-  if (cached?.promise) return cached.promise;
-
-  const promise = blobFactory()
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      state.speechBlobCache.set(key, { url, createdAt: Date.now() });
-      trimSpeechBlobCache();
-      return url;
-    })
-    .catch((error) => {
-      state.speechBlobCache.delete(key);
-      throw error;
-    });
-
-  state.speechBlobCache.set(key, { promise, createdAt: Date.now() });
-  return promise;
+  return getCachedSpeechObjectUrl(state.speechBlobCache, provider, text, voice, blobFactory);
 }
 
 function trimSpeechBlobCache(maxItems = 80) {
-  if (state.speechBlobCache.size <= maxItems) return;
-  const entries = [...state.speechBlobCache.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt);
-  for (const [key, value] of entries.slice(0, state.speechBlobCache.size - maxItems)) {
-    if (value.url) URL.revokeObjectURL(value.url);
-    state.speechBlobCache.delete(key);
-  }
+  trimCachedSpeechBlobCache(state.speechBlobCache, maxItems);
 }
 
 async function prefetchAiSpeech(text, speakerChar = "B") {
@@ -2027,40 +2012,6 @@ function msgTextClean(text) {
   return String(text || "").trim();
 }
 
-function isCorrectiveAiFeedback(feedback) {
-  const text = String(feedback || "").trim();
-  if (!text) return false;
-  return [
-    "不自然",
-    "不太",
-    "有点",
-    "不够",
-    "不合适",
-    "听起来",
-    "更自然",
-    "建议",
-    "可以改",
-    "应该",
-    "请用",
-    "最好",
-    "礼貌",
-    "敬语",
-    "错误",
-    "纠错",
-    "改成",
-    "换成",
-    "说法是",
-    "会显得",
-    "直接",
-  ].some((marker) => text.includes(marker));
-}
-
-function isAiChatReplyAccepted(aiReply) {
-  const acceptedValue = aiReply?.accepted;
-  const explicitlyAccepted = acceptedValue === true || String(acceptedValue).toLowerCase() === "true";
-  return explicitlyAccepted && !isCorrectiveAiFeedback(aiReply?.feedback);
-}
-
 function renderAiChatSession() {
   if (!state.aiChatActive) return;
 
@@ -2225,12 +2176,7 @@ async function sendAiChatMessage() {
 
   try {
     // Format conversation history payload in Gemini format
-    const historyPayload = state.aiChatHistory
-      .filter((msg) => msg.accepted !== false)
-      .map(msg => ({
-        role: msg.role,
-        text: msg.ja
-      }));
+    const historyPayload = buildAcceptedAiHistoryPayload(state.aiChatHistory);
 
     const response = await fetch("/api/gemini-chat", {
       method: "POST",
