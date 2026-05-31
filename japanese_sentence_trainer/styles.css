@@ -479,6 +479,10 @@ button {
   font-weight: 500;
 }
 
+.chat-thread.is-hidden {
+  display: none !important;
+}
+
 .chat-empty {
   color: var(--muted);
 }
@@ -1532,6 +1536,7 @@ body.vn-active .vn-controls {
   align-items: center;
   justify-content: center;
   animation: vnModalFadeIn 0.3s ease-out;
+  pointer-events: auto;
 }
 
 @keyframes vnModalFadeIn {

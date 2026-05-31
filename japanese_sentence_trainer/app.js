@@ -1850,12 +1850,12 @@ function openAiChatSetup() {
   }
   els.vnAiCustomInput.value = "";
   els.vnAiSetupModal.style.display = "flex";
-  els.dialogueThread.style.display = "none"; // Hide subtitles behind modal
+  els.dialogueThread.classList.add("is-hidden"); // Hide subtitles behind modal
 }
 
 function closeAiChatSetup() {
   els.vnAiSetupModal.style.display = "none";
-  els.dialogueThread.style.display = "block"; // Restore subtitles
+  els.dialogueThread.classList.remove("is-hidden"); // Restore subtitles
 }
 
 async function startCustomAiChat(customScene = "") {
@@ -1967,7 +1967,7 @@ function msgTextClean(text) {
 function renderAiChatSession() {
   if (!state.aiChatActive) return;
 
-  els.dialogueThread.style.display = "block"; // Restore visibility for AI Chat bubbles
+  els.dialogueThread.classList.remove("is-hidden"); // Restore visibility for AI Chat bubbles
 
   // 1. Render Floating Checklist HUD at the top of dialogue area
   let checklistHtml = `
@@ -2247,7 +2247,7 @@ function exitAiChat() {
 
   // Hide overlay input
   els.vnAiInputArea.style.display = "none";
-  els.dialogueThread.style.display = "block"; // Ensure standard bubbles show
+  els.dialogueThread.classList.remove("is-hidden"); // Ensure standard bubbles show
   
   // Re-render core training interface
   renderTrainer();
