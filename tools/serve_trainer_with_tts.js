@@ -404,8 +404,12 @@ ${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
 请务必注意：
 1. 评估用户刚才发给你的那句话是否在逻辑上和语言表达上达成/推动了上述某个逻辑关卡。
 2. 评估用户日语表达的语法与礼仪得体程度。如果不符合日本的社会习惯或敬语规则，请在 feedback 字段中给出极简纠错。
-3. 请必须仅返回一个合法的 JSON 对象，不要包含 markdown 格式标记，JSON 字段如下：
+3. 如果用户刚才的日语不自然、不礼貌、语义不清，或者没有真正回应当前角色的话，请返回 accepted=false。此时不要继续角色扮演，不要推进剧情，不要新增 completed_checkpoints，ja 和 zh 必须为空字符串，只在 feedback 中给出具体修改建议和可参考的自然说法。
+4. 只有当用户刚才的话足够自然、符合场景、能推动任务时，才返回 accepted=true，并给出角色的下一句回复。
+5. 如果 feedback 中包含任何纠错、表达优化、礼仪提醒或“更自然的说法”，accepted 必须是 false，ja 和 zh 必须为空字符串。accepted=true 时 feedback 只能为空或简短鼓励，不能同时纠错又继续对话。
+6. 请必须仅返回一个合法的 JSON 对象，不要包含 markdown 格式标记，JSON 字段如下：
 {
+  "accepted": true, // 布尔值。用户刚才那句是否合格；false 时必须暂停推进并让用户修改
   "ja": "你（AI角色）用日语口语说出的下一句自然回复（2-3句内）",
   "zh": "该日语回复的中文翻译",
   "feedback": "针对用户刚才那一句话的极简中文语法/礼仪纠错、表达优化建议（如果没有错，可以写一句鼓励的话或为空，控制在50字内）",
@@ -424,7 +428,22 @@ ${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
           parts: [{ text: systemInstructionText }]
         },
         generationConfig: {
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              accepted: { type: "BOOLEAN" },
+              ja: { type: "STRING" },
+              zh: { type: "STRING" },
+              feedback: { type: "STRING" },
+              completed_checkpoints: {
+                type: "ARRAY",
+                items: { type: "NUMBER" }
+              },
+              mission_completed: { type: "BOOLEAN" }
+            },
+            required: ["accepted", "ja", "zh", "feedback", "completed_checkpoints", "mission_completed"]
+          }
         }
       };
     }

@@ -79,6 +79,7 @@ const state = {
   mistakes: readJson(storageKeys.mistakes, []),
   lastPrefetchedDialogueId: null,
   currentAudio: null,
+  speechBlobCache: new Map(),
   aiChatActive: false,
   aiChatHistory: [],
   aiMission: { character: "", goal: "", checkpoints: [], completed: [], active: false },
@@ -1129,18 +1130,17 @@ async function playVoicevoxSpeech(text, speakerId) {
   const cleanedText = cleanTextForTts(text);
   if (!cleanedText) return null;
 
-  const response = await fetch("/api/voicevox-tts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: cleanedText, speaker: speakerId }),
-  });
-
-  if (!response.ok) throw new Error(`VOICEVOX Speech failed: ${response.status}`);
-
-  const audio = new Audio(URL.createObjectURL(await response.blob()));
+  const audio = new Audio(await getSpeechObjectUrl("voicevox", cleanedText, speakerId, async () => {
+    const response = await fetch("/api/voicevox-tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: cleanedText, speaker: speakerId }),
+    });
+    if (!response.ok) throw new Error(`VOICEVOX Speech failed: ${response.status}`);
+    return response.blob();
+  }));
   state.currentAudio = audio;
   audio.addEventListener("ended", () => {
-    URL.revokeObjectURL(audio.src);
     if (state.currentAudio === audio) state.currentAudio = null;
   }, { once: true });
   await audio.play();
@@ -1148,46 +1148,106 @@ async function playVoicevoxSpeech(text, speakerId) {
   return audio;
 }
 
+async function getSpeechObjectUrl(provider, text, voice, blobFactory) {
+  const key = `${provider}:${voice}:${text}`;
+  const cached = state.speechBlobCache.get(key);
+  if (cached?.url) return cached.url;
+  if (cached?.promise) return cached.promise;
+
+  const promise = blobFactory()
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      state.speechBlobCache.set(key, { url, createdAt: Date.now() });
+      trimSpeechBlobCache();
+      return url;
+    })
+    .catch((error) => {
+      state.speechBlobCache.delete(key);
+      throw error;
+    });
+
+  state.speechBlobCache.set(key, { promise, createdAt: Date.now() });
+  return promise;
+}
+
+function trimSpeechBlobCache(maxItems = 80) {
+  if (state.speechBlobCache.size <= maxItems) return;
+  const entries = [...state.speechBlobCache.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt);
+  for (const [key, value] of entries.slice(0, state.speechBlobCache.size - maxItems)) {
+    if (value.url) URL.revokeObjectURL(value.url);
+    state.speechBlobCache.delete(key);
+  }
+}
+
+async function prefetchAiSpeech(text, speakerChar = "B") {
+  const cleanedText = cleanTextForTts(text);
+  if (!cleanedText) return;
+  try {
+    if (state.settings.voiceProvider === "voicevox") {
+      const selectedVoice = getSpeakerVoice(state.settings, speakerChar);
+      let speakerId = speakerChar === "B" ? "3" : "2";
+      if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) speakerId = String(selectedVoice).trim();
+      await getSpeechObjectUrl("voicevox", cleanedText, speakerId, async () => {
+        const response = await fetch("/api/voicevox-tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: cleanedText, speaker: speakerId }),
+        });
+        if (!response.ok) throw new Error(`VOICEVOX prefetch failed: ${response.status}`);
+        return response.blob();
+      });
+    } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
+      await getMicrosoftSpeechObjectUrl(cleanedText, getSpeakerVoice(state.settings, speakerChar));
+    }
+  } catch {
+    // Prefetch is an optimization; playback can still fall back later.
+  }
+}
+
 async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVoice) {
   stopCurrentSpeech();
   const cleanedText = cleanTextForTts(text);
   if (!cleanedText) return null;
 
+  const audio = new Audio(await getMicrosoftSpeechObjectUrl(cleanedText, selectedVoice));
+  state.currentAudio = audio;
+  audio.addEventListener("ended", () => {
+    if (state.currentAudio === audio) state.currentAudio = null;
+  }, { once: true });
+  await audio.play();
+  els.voiceStatus.textContent = `微软语音：${selectedVoice}`;
+  return audio;
+}
+
+async function getMicrosoftSpeechObjectUrl(cleanedText, selectedVoice = state.settings.speechVoice) {
   const region = state.settings.speechRegion.trim();
   const voice = selectedVoice.trim();
   const key = state.settings.speechKey.trim();
   if (!region || !voice || !key) throw new Error("Missing Microsoft Speech configuration");
 
   const ssml = buildSpeechSsml(voice, cleanedText);
-  let response = await fetch("/api/microsoft-tts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ region, key, voice, text, ssml }),
-  });
-
-  if (response.status === 404 || response.status === 405) {
-    response = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+  return getSpeechObjectUrl("microsoft", cleanedText, `${region}:${voice}`, async () => {
+    let response = await fetch("/api/microsoft-tts", {
       method: "POST",
-      headers: {
-        "Ocp-Apim-Subscription-Key": key,
-        "Content-Type": "application/ssml+xml",
-        "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
-      },
-      body: ssml,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ region, key, voice, text: cleanedText, ssml }),
     });
-  }
 
-  if (!response.ok) throw new Error(`Microsoft Speech failed: ${response.status}`);
+    if (response.status === 404 || response.status === 405) {
+      response = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+        method: "POST",
+        headers: {
+          "Ocp-Apim-Subscription-Key": key,
+          "Content-Type": "application/ssml+xml",
+          "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+        },
+        body: ssml,
+      });
+    }
 
-  const audio = new Audio(URL.createObjectURL(await response.blob()));
-  state.currentAudio = audio;
-  audio.addEventListener("ended", () => {
-    URL.revokeObjectURL(audio.src);
-    if (state.currentAudio === audio) state.currentAudio = null;
-  }, { once: true });
-  await audio.play();
-  els.voiceStatus.textContent = `微软语音：${voice}`;
-  return audio;
+    if (!response.ok) throw new Error(`Microsoft Speech failed: ${response.status}`);
+    return response.blob();
+  });
 }
 
 async function playMicrosoftSpeechDirect(text) {
@@ -1849,12 +1909,14 @@ function openAiChatSetup() {
     return;
   }
   els.vnAiCustomInput.value = "";
+  document.body.classList.add("vn-ai-modal-open");
   els.vnAiSetupModal.style.display = "flex";
   els.dialogueThread.classList.add("is-hidden"); // Hide subtitles behind modal
 }
 
 function closeAiChatSetup() {
   els.vnAiSetupModal.style.display = "none";
+  document.body.classList.remove("vn-ai-modal-open");
   els.dialogueThread.classList.remove("is-hidden"); // Restore subtitles
 }
 
@@ -1949,9 +2011,10 @@ async function startCustomAiChat(customScene = "") {
       renderAiChatSession();
       
       // Synthesize first welcome voice
+      prefetchAiSpeech(missionData.first_utterance, "B");
       setTimeout(() => {
         playAiCharacterSpeech(missionData.first_utterance, "B");
-      }, 500);
+      }, 120);
     }
   } catch (error) {
     alert("AI 场景任务生成失败，请检查 Gemini Key 后重试。\n错误: " + error.message);
@@ -1962,6 +2025,40 @@ async function startCustomAiChat(customScene = "") {
 
 function msgTextClean(text) {
   return String(text || "").trim();
+}
+
+function isCorrectiveAiFeedback(feedback) {
+  const text = String(feedback || "").trim();
+  if (!text) return false;
+  return [
+    "不自然",
+    "不太",
+    "有点",
+    "不够",
+    "不合适",
+    "听起来",
+    "更自然",
+    "建议",
+    "可以改",
+    "应该",
+    "请用",
+    "最好",
+    "礼貌",
+    "敬语",
+    "错误",
+    "纠错",
+    "改成",
+    "换成",
+    "说法是",
+    "会显得",
+    "直接",
+  ].some((marker) => text.includes(marker));
+}
+
+function isAiChatReplyAccepted(aiReply) {
+  const acceptedValue = aiReply?.accepted;
+  const explicitlyAccepted = acceptedValue === true || String(acceptedValue).toLowerCase() === "true";
+  return explicitlyAccepted && !isCorrectiveAiFeedback(aiReply?.feedback);
 }
 
 function renderAiChatSession() {
@@ -2015,11 +2112,11 @@ function renderAiChatSession() {
       </div>
     `;
 
-    // Render Grammar/Etiquette Feedback directly under model bubble
-    if (msg.role === "model" && msg.feedback) {
+    // Render feedback directly under the related bubble.
+    if (msg.feedback) {
       bubblesHtml += `
-        <div class="vn-ai-feedback">
-          <div class="vn-ai-feedback-title">💡 老师指导与纠错：</div>
+        <div class="vn-ai-feedback${msg.accepted === false ? " needs-retry" : ""}">
+          <div class="vn-ai-feedback-title">💡 ${msg.accepted === false ? "请先修改这一句：" : "老师指导与纠错："}</div>
           <div>${escapeHtml(msg.feedback)}</div>
         </div>
       `;
@@ -2030,6 +2127,12 @@ function renderAiChatSession() {
   
   // Scroll to bottom
   els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
+
+  if (state.settings.voiceProvider !== "browser") {
+    state.aiChatHistory.forEach((msg) => {
+      if (msg.role === "model" && msg.ja) prefetchAiSpeech(msg.ja, "B");
+    });
+  }
 }
 
 window.playAiHistoryAudio = function(index) {
@@ -2076,6 +2179,7 @@ window.playUserHistoryAudio = function(index) {
 
 async function sendAiChatMessage() {
   if (!state.aiChatActive) return;
+  if (els.vnAiSendBtn.disabled) return;
   
   const rawText = els.vnAiTextInput.value.trim();
   let userVoiceBlobUrl = state.recordingUrl || "";
@@ -2087,6 +2191,9 @@ async function sendAiChatMessage() {
   if (els.playRecordingButton) els.playRecordingButton.disabled = true;
   
   if (!rawText) return;
+
+  els.vnAiSendBtn.disabled = true;
+  els.vnAiTextInput.disabled = true;
 
   // Append user message to history
   state.aiChatHistory.push({
@@ -2118,10 +2225,12 @@ async function sendAiChatMessage() {
 
   try {
     // Format conversation history payload in Gemini format
-    const historyPayload = state.aiChatHistory.map(msg => ({
-      role: msg.role,
-      text: msg.ja
-    }));
+    const historyPayload = state.aiChatHistory
+      .filter((msg) => msg.accepted !== false)
+      .map(msg => ({
+        role: msg.role,
+        text: msg.ja
+      }));
 
     const response = await fetch("/api/gemini-chat", {
       method: "POST",
@@ -2144,7 +2253,22 @@ async function sendAiChatMessage() {
     if (data.success && data.result) {
       const aiReply = data.result;
       
-      // Update dynamic checkpoint ticks
+      const accepted = isAiChatReplyAccepted(aiReply);
+      if (!accepted) {
+        const lastUserMessage = state.aiChatHistory[state.aiChatHistory.length - 1];
+        if (lastUserMessage?.role === "user") {
+          lastUserMessage.feedback = aiReply.feedback || "这句还不够自然，请根据任务要求再改一次。";
+          lastUserMessage.accepted = false;
+        }
+        typingSkeleton.remove();
+        renderAiChatSession();
+        els.vnAiSendBtn.disabled = false;
+        els.vnAiTextInput.disabled = false;
+        els.vnAiTextInput.focus();
+        return;
+      }
+
+      // Update dynamic checkpoint ticks only after the user's answer is accepted.
       if (aiReply.completed_checkpoints && Array.isArray(aiReply.completed_checkpoints)) {
         aiReply.completed_checkpoints.forEach(idx => {
           if (!state.aiMission.completed.includes(idx)) {
@@ -2158,7 +2282,8 @@ async function sendAiChatMessage() {
         role: "model",
         ja: aiReply.ja,
         zh: aiReply.zh,
-        feedback: aiReply.feedback
+        feedback: aiReply.feedback,
+        accepted: true
       });
 
       // Remove typing bubble and render session
@@ -2166,6 +2291,7 @@ async function sendAiChatMessage() {
       renderAiChatSession();
 
       // Trigger Standee speech synthesis and animations
+      prefetchAiSpeech(aiReply.ja, "B");
       playAiCharacterSpeech(aiReply.ja, "B");
 
       // Gamified sparkling celebration upon complete mission completion
@@ -2182,6 +2308,12 @@ async function sendAiChatMessage() {
       feedback: "错误详情：" + error.message
     });
     renderAiChatSession();
+  } finally {
+    if (state.aiChatActive) {
+      els.vnAiSendBtn.disabled = false;
+      els.vnAiTextInput.disabled = false;
+      els.vnAiTextInput.focus();
+    }
   }
 }
 

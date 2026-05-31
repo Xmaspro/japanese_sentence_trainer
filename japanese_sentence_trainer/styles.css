@@ -988,6 +988,18 @@ body.vn-active .vn-stage {
   display: block;
 }
 
+body.vn-active.vn-ai-modal-open .vn-stage {
+  z-index: 3000;
+  pointer-events: auto;
+}
+
+body.vn-active .chat-thread.is-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* 侧边栏与右侧栏毛玻璃模糊滤镜 */
 body.vn-active .sidebar,
 body.vn-active .coach-panel {
@@ -1524,7 +1536,7 @@ body.vn-active .vn-controls {
 
 /* 1. Setup Modal Overlay (场景对练配置框) */
 .vn-ai-modal {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -1537,6 +1549,10 @@ body.vn-active .vn-controls {
   justify-content: center;
   animation: vnModalFadeIn 0.3s ease-out;
   pointer-events: auto;
+}
+
+.vn-ai-modal[style*="display: none"] {
+  pointer-events: none;
 }
 
 @keyframes vnModalFadeIn {
@@ -1555,6 +1571,7 @@ body.vn-active .vn-controls {
   color: #fff;
   text-align: center;
   position: relative;
+  z-index: 1;
 }
 
 .vn-modal-content h3 {
@@ -1860,6 +1877,11 @@ body.vn-active .vn-controls {
   color: rgba(255, 255, 255, 0.85);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: vnFeedbackFadeIn 0.3s ease-out;
+}
+
+.vn-ai-feedback.needs-retry {
+  background: rgba(95, 30, 30, 0.62);
+  border-left-color: #ff8a65;
 }
 
 @keyframes vnFeedbackFadeIn {
