@@ -1115,13 +1115,24 @@ async function playSentence() {
   }
 }
 
+function cleanTextForTts(text) {
+  return String(text || "")
+    .replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, "") // remove Emojis
+    .replace(/\([^)]*\)/g, "") // remove parenthetical notes
+    .replace(/（[^）]*）/g, "") // remove full-width parenthetical notes
+    .replace(/\*+/g, "") // remove markdown bold marks
+    .trim();
+}
+
 async function playVoicevoxSpeech(text, speakerId) {
   stopCurrentSpeech();
+  const cleanedText = cleanTextForTts(text);
+  if (!cleanedText) return null;
 
   const response = await fetch("/api/voicevox-tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, speaker: speakerId }),
+    body: JSON.stringify({ text: cleanedText, speaker: speakerId }),
   });
 
   if (!response.ok) throw new Error(`VOICEVOX Speech failed: ${response.status}`);
@@ -1139,13 +1150,15 @@ async function playVoicevoxSpeech(text, speakerId) {
 
 async function playMicrosoftSpeech(text, selectedVoice = state.settings.speechVoice) {
   stopCurrentSpeech();
+  const cleanedText = cleanTextForTts(text);
+  if (!cleanedText) return null;
 
   const region = state.settings.speechRegion.trim();
   const voice = selectedVoice.trim();
   const key = state.settings.speechKey.trim();
   if (!region || !voice || !key) throw new Error("Missing Microsoft Speech configuration");
 
-  const ssml = buildSpeechSsml(voice, text);
+  const ssml = buildSpeechSsml(voice, cleanedText);
   let response = await fetch("/api/microsoft-tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1837,10 +1850,12 @@ function openAiChatSetup() {
   }
   els.vnAiCustomInput.value = "";
   els.vnAiSetupModal.style.display = "flex";
+  els.dialogueThread.style.display = "none"; // Hide subtitles behind modal
 }
 
 function closeAiChatSetup() {
   els.vnAiSetupModal.style.display = "none";
+  els.dialogueThread.style.display = "block"; // Restore subtitles
 }
 
 async function startCustomAiChat(customScene = "") {
@@ -1915,7 +1930,7 @@ async function startCustomAiChat(customScene = "") {
       closeAiChatSetup();
       
       // Configure controls UI
-      els.vnAiChatBtn.textContent = "🚪 退出互动";
+      els.vnAiChatBtn.textContent = "🚪 退出";
       els.vnAiChatBtn.classList.add("ai-active");
       
       // Disable standard curriculum navigations
@@ -1951,6 +1966,8 @@ function msgTextClean(text) {
 
 function renderAiChatSession() {
   if (!state.aiChatActive) return;
+
+  els.dialogueThread.style.display = "block"; // Restore visibility for AI Chat bubbles
 
   // 1. Render Floating Checklist HUD at the top of dialogue area
   let checklistHtml = `
@@ -2218,7 +2235,7 @@ function exitAiChat() {
   state.aiMission = { character: "", goal: "", checkpoints: [], completed: [], active: false };
 
   // Restore button labels & highlight
-  els.vnAiChatBtn.textContent = "💬 AI 互动";
+  els.vnAiChatBtn.textContent = "💬 互动";
   els.vnAiChatBtn.classList.remove("ai-active");
 
   // Re-enable curriculum controls
@@ -2230,6 +2247,7 @@ function exitAiChat() {
 
   // Hide overlay input
   els.vnAiInputArea.style.display = "none";
+  els.dialogueThread.style.display = "block"; // Ensure standard bubbles show
   
   // Re-render core training interface
   renderTrainer();

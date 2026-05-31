@@ -133,6 +133,11 @@ function formatDialogueForGemini(sentence) {
   return `主题：${topic}\n前文：\n${before}\n当前句：\n${sentence.speaker || ""}: ${sentence.ja || ""}\n后文：\n${after}\n重要句型：${sentence.pattern || ""}`;
 }
 
+const microsoftCacheDir = path.join(root, "tools", ".microsoft_cache");
+if (!fs.existsSync(microsoftCacheDir)) {
+  fs.mkdirSync(microsoftCacheDir, { recursive: true });
+}
+
 async function handleMicrosoftTts(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405);
@@ -148,6 +153,21 @@ async function handleMicrosoftTts(request, response) {
     response.writeHead(400);
     response.end("Missing region, key, or SSML");
     return;
+  }
+
+  // Create hash based on ssml
+  const hash = crypto.createHash("sha256").update(ssml).digest("hex");
+  const cachePath = path.join(microsoftCacheDir, `${hash}.mp3`);
+
+  if (fs.existsSync(cachePath)) {
+    try {
+      const data = fs.readFileSync(cachePath);
+      response.writeHead(200, { "Content-Type": "audio/mpeg", "X-Cache": "HIT" });
+      response.end(data);
+      return;
+    } catch (err) {
+      console.error("Failed to read Microsoft TTS cache:", err);
+    }
   }
 
   const azureResponse = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
@@ -166,8 +186,15 @@ async function handleMicrosoftTts(request, response) {
     return;
   }
 
-  response.writeHead(200, { "Content-Type": "audio/mpeg" });
-  response.end(Buffer.from(await azureResponse.arrayBuffer()));
+  const audioBuffer = Buffer.from(await azureResponse.arrayBuffer());
+  try {
+    fs.writeFileSync(cachePath, audioBuffer);
+  } catch (err) {
+    console.error("Failed to write Microsoft TTS cache file:", err);
+  }
+
+  response.writeHead(200, { "Content-Type": "audio/mpeg", "X-Cache": "MISS" });
+  response.end(audioBuffer);
 }
 
 const voicevoxCacheDir = path.join(root, "tools", ".voicevox_cache");

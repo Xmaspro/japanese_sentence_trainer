@@ -1359,9 +1359,12 @@ body.vn-active .vn-controls {
   display: flex !important;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 6px !important;
   margin-top: 10px !important;
   width: 100%;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  padding: 4px 0 !important;
 }
 
 .vn-ctrl-btn {
@@ -1468,15 +1471,20 @@ body.vn-active .vn-controls {
   }
 
   body.vn-active .sentence-meta {
-    margin-bottom: 6px !important;
-    justify-content: flex-end; /* 使进度指示靠右对齐，契合游戏HUD排版 */
+    position: absolute !important;
+    top: 24px !important;
+    right: 24px !important;
+    z-index: 100 !important;
+    margin: 0 !important;
+    display: flex !important;
+    gap: 8px !important;
   }
 
   body.vn-active .sentence-meta span {
-    background: rgba(26, 32, 73, 0.8) !important;
+    background: rgba(26, 32, 73, 0.85) !important;
     color: #f3d4a2 !important;
-    border: 1px solid #e0a96d !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    border: 1.5px solid #e0a96d !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
     border-radius: 6px !important;
   }
 
