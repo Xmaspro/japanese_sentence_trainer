@@ -55,7 +55,7 @@ const defaultSettings = {
   speakerAVoice: "ja-JP-NanamiNeural",
   speakerBVoice: "ja-JP-KeitaNeural",
   geminiKey: "",
-  geminiModel: "gemini-1.5-flash",
+  geminiModel: "openrouter/owl-alpha",
   vnMode: true,
   bgProvider: "pollinations",
   siliconKey: "",
@@ -92,6 +92,10 @@ const state = {
   aiChatHistory: [],
   aiMission: { character: "", goal: "", checkpoints: [], completed: [], active: false },
 };
+
+if (!state.settings.geminiModel || state.settings.geminiModel === "gemini-1.5-flash") {
+  state.settings.geminiModel = defaultSettings.geminiModel;
+}
 
 const els = {
   appShell: document.querySelector("#appShell"),
@@ -744,7 +748,7 @@ let activeTranslationFetchId = null;
 
 async function fetchGroupTranslation(dialogueId, currentDialogue) {
   const key = state.settings.geminiKey;
-  const model = state.settings.geminiModel || "gemini-1.5-flash";
+  const model = state.settings.geminiModel || defaultSettings.geminiModel;
   if (!key) return null;
 
   try {
@@ -759,29 +763,24 @@ async function fetchGroupTranslation(dialogueId, currentDialogue) {
 对话内容：
 ${JSON.stringify(lines, null, 2)}`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-    const response = await fetch(url, {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${key}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": location.origin,
+        "X-Title": "Japanese Sentence Trainer",
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: promptText,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
+        model,
+        messages: [{ role: "user", content: promptText }],
+        response_format: { type: "json_object" },
       }),
     });
 
-    if (!response.ok) throw new Error(`Gemini translation failed: ${response.status}`);
+    if (!response.ok) throw new Error(`OpenRouter translation failed: ${response.status}`);
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+    const text = data.choices?.[0]?.message?.content || "";
     
     let cleanText = text.trim();
     if (cleanText.startsWith("```")) {
@@ -790,7 +789,7 @@ ${JSON.stringify(lines, null, 2)}`;
     const translations = JSON.parse(cleanText.trim());
     return translations;
   } catch (error) {
-    console.error("Gemini translation error:", error);
+    console.error("OpenRouter translation error:", error);
     return null;
   }
 }
@@ -843,14 +842,14 @@ function renderGroupTranslation() {
     container.innerHTML = `
       <div style="font-size: 13px; color: var(--muted); padding: 12px 8px; line-height: 1.6; text-align: center;">
         <span style="display: block; margin-bottom: 6px; font-weight: bold; color: var(--green);">💡 智能翻译说明</span>
-        本对话暂无翻译。请在左侧配置并保存 <strong>Gemini API Key</strong>，系统将自动通过 AI 翻译该组对话。
+        本对话暂无翻译。请在左侧配置并保存 <strong>OpenRouter API Key</strong>，系统将自动通过 AI 翻译该组对话。
       </div>
     `;
     return;
   }
 
-  // If we have Gemini key, show a loading status and trigger fetch
-  container.innerHTML = `<div class="chat-empty" style="font-size: 13.5px; color: var(--muted); text-align: center; padding: 16px;">正在通过 Gemini AI 翻译对话，请稍候...</div>`;
+  // If we have an OpenRouter key, show a loading status and trigger fetch.
+  container.innerHTML = `<div class="chat-empty" style="font-size: 13.5px; color: var(--muted); text-align: center; padding: 16px;">正在通过 OpenRouter AI 翻译对话，请稍候...</div>`;
 
   if (activeTranslationFetchId !== dialogueId) {
     activeTranslationFetchId = dialogueId;
@@ -1299,7 +1298,7 @@ function saveGeminiSettings() {
     geminiModel: els.geminiModel.value.trim() || defaultSettings.geminiModel,
   };
   saveJson(storageKeys.settings, state.settings);
-  els.geminiStatus.textContent = state.settings.geminiKey ? "Gemini 配置已保存到本机浏览器。" : "未填写 Gemini API Key。";
+  els.geminiStatus.textContent = state.settings.geminiKey ? "OpenRouter 配置已保存到本机浏览器。" : "未填写 OpenRouter API Key。";
 }
 
 function saveBgSettings() {
@@ -1318,8 +1317,8 @@ async function refreshGeminiExplanation() {
   const sentence = currentSentence();
   if (!sentence) return;
   if (!state.settings.geminiKey) {
-    els.geminiStatus.textContent = "请先填写并保存 Gemini API Key。";
-    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">请先在左侧“Gemini 配置”中填写并保存您的 API Key。</div>`;
+    els.geminiStatus.textContent = "请先填写并保存 OpenRouter API Key。";
+    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">请先在左侧“OpenRouter 配置”中填写并保存您的 API Key。</div>`;
     return;
   }
 
@@ -1337,8 +1336,8 @@ async function refreshGeminiExplanation() {
     els.geminiStatus.textContent = "讲解已生成并缓存。";
   } catch (error) {
     if (currentSentence()?.id === sentence.id) {
-      els.geminiStatus.textContent = "Gemini 讲解失败，请检查 API Key 或本地服务。";
-      els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">Gemini 讲解生成失败。请检查您的 API Key 是否有效，或本地 Node 服务是否正常运行。</div>`;
+      els.geminiStatus.textContent = "OpenRouter 讲解失败，请检查 API Key、模型名称或本地服务。";
+      els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">OpenRouter 讲解生成失败。请检查您的 API Key、模型名称是否有效，或本地 Node 服务是否正常运行。</div>`;
     }
   } finally {
     if (state.fetchingExplanationSentenceId === sentence.id) {
@@ -1376,29 +1375,31 @@ async function requestGeminiExplanation(sentence) {
   if (response.status === 404 || response.status === 405) {
     response = await fetchGeminiDirect(payload);
   }
-  if (!response.ok) throw new Error(`Gemini failed: ${response.status}`);
+  if (!response.ok) throw new Error(`OpenRouter failed: ${response.status}`);
   const data = await response.json();
-  return data.explanation || data.text || data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+  return data.explanation || data.text || data.choices?.[0]?.message?.content || data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
 }
 
 async function fetchGeminiDirect(payload) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(payload.model)}:generateContent?key=${encodeURIComponent(payload.key)}`;
-  return fetch(url, {
+  return fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildGeminiRequestBody(payload.sentence)),
+    headers: {
+      "Authorization": `Bearer ${payload.key}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": location.origin,
+      "X-Title": "Japanese Sentence Trainer",
+    },
+    body: JSON.stringify(buildGeminiRequestBody(payload.sentence, payload.model)),
   });
 }
 
-function buildGeminiRequestBody(sentence) {
+function buildGeminiRequestBody(sentence, model = defaultSettings.geminiModel) {
   return {
-    contents: [
+    model,
+    messages: [
       {
-        parts: [
-          {
-            text: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(sentence)}`,
-          },
-        ],
+        role: "user",
+        content: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(sentence)}`,
       },
     ],
   };
@@ -1890,7 +1891,7 @@ function openAiChatSetup() {
     return;
   }
   if (!state.settings.geminiKey) {
-    alert("请先配置并保存您的 Gemini API Key！");
+    alert("请先配置并保存您的 OpenRouter API Key！");
     return;
   }
   els.vnAiCustomInput.value = "";
@@ -1948,7 +1949,7 @@ async function startCustomAiChat(customScene = "") {
       });
     }
 
-    if (!response.ok) throw new Error(`Gemini Init Failed: ${response.status}`);
+    if (!response.ok) throw new Error(`OpenRouter Init Failed: ${response.status}`);
     const data = await response.json();
     if (data.success && data.result) {
       const missionData = data.result;
@@ -2002,7 +2003,7 @@ async function startCustomAiChat(customScene = "") {
       }, 120);
     }
   } catch (error) {
-    alert("AI 场景任务生成失败，请检查 Gemini Key 后重试。\n错误: " + error.message);
+    alert("AI 场景任务生成失败，请检查 OpenRouter API Key 和模型名称后重试。\n错误: " + error.message);
   } finally {
     loadingOverlay.remove();
   }
@@ -2175,7 +2176,7 @@ async function sendAiChatMessage() {
   els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
 
   try {
-    // Format conversation history payload in Gemini format
+    // Format conversation history payload for the OpenRouter chat proxy.
     const historyPayload = buildAcceptedAiHistoryPayload(state.aiChatHistory);
 
     const response = await fetch("/api/gemini-chat", {
@@ -2193,7 +2194,7 @@ async function sendAiChatMessage() {
       })
     });
 
-    if (!response.ok) throw new Error(`Gemini Chat Failed: ${response.status}`);
+    if (!response.ok) throw new Error(`OpenRouter Chat Failed: ${response.status}`);
     const data = await response.json();
     
     if (data.success && data.result) {

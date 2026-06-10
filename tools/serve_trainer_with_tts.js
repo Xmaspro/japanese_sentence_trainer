@@ -82,42 +82,50 @@ async function handleGeminiExplain(request, response) {
 
   const body = JSON.parse(await readBody(request));
   const key = String(body.key || "").trim();
-  const model = String(body.model || "gemini-1.5-flash").trim();
+  const model = String(body.model || "openrouter/owl-alpha").trim();
   if (!key || !body.sentence) {
     response.writeHead(400);
-    response.end("Missing Gemini key or sentence");
+    response.end("Missing OpenRouter key or sentence");
     return;
   }
 
-  const geminiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(body.sentence)}`,
-              },
-            ],
-          },
-        ],
-      }),
-    },
-  );
+  const openRouterResponse = await fetchOpenRouterChat(key, {
+    model,
+    messages: [
+      {
+        role: "user",
+        content: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(body.sentence)}`,
+      },
+    ],
+  });
 
-  if (!geminiResponse.ok) {
-    response.writeHead(geminiResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
-    response.end(await geminiResponse.text());
+  if (!openRouterResponse.ok) {
+    response.writeHead(openRouterResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end(await openRouterResponse.text());
     return;
   }
 
-  const data = await geminiResponse.json();
-  const explanation = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+  const data = await openRouterResponse.json();
+  const explanation = readOpenRouterMessage(data);
   response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
   response.end(JSON.stringify({ explanation }));
+}
+
+function fetchOpenRouterChat(key, payload) {
+  return fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${key}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "http://127.0.0.1:5177",
+      "X-Title": "Japanese Sentence Trainer",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+function readOpenRouterMessage(data) {
+  return data.choices?.[0]?.message?.content || "";
 }
 
 function formatDialogueForGemini(sentence) {
@@ -334,7 +342,7 @@ async function handleGeminiChat(request, response) {
   try {
     const body = JSON.parse(await readBody(request));
     const key = String(body.key || "").trim();
-    const model = String(body.model || "gemini-1.5-flash").trim();
+    const model = String(body.model || "openrouter/owl-alpha").trim();
     const initCustom = !!body.initCustom;
     const sceneDescription = String(body.sceneDescription || "").trim();
     const history = body.history || [];
@@ -342,12 +350,11 @@ async function handleGeminiChat(request, response) {
 
     if (!key) {
       response.writeHead(400);
-      response.end("Missing Gemini Key");
+      response.end("Missing OpenRouter Key");
       return;
     }
 
     let payload;
-    let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
 
     if (initCustom) {
       const promptText = `你是一名专业的日语口语教学大纲设计师。请根据用户输入的【意向生活场景】，结合日本社会文化、礼仪规范和日常生活习惯，为用户精心编排设计一个情景化、任务驱动型的日语口语角色扮演通关任务。
@@ -377,14 +384,9 @@ async function handleGeminiChat(request, response) {
 }`;
 
       payload = {
-        contents: [
-          {
-            parts: [{ text: promptText }]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
+        model,
+        messages: [{ role: "user", content: promptText }],
+        response_format: { type: "json_object" }
       };
     } else {
       if (!mission) {
@@ -417,52 +419,32 @@ ${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
   "mission_completed": false // 布尔值。如果所有指定的关卡都已被用户达成，且对话圆满结束，则为 true
 }`;
 
-      const contents = history.map(item => ({
-        role: item.role === "user" ? "user" : "model",
-        parts: [{ text: item.text }]
-      }));
+      const messages = [
+        { role: "system", content: systemInstructionText },
+        ...history.map(item => ({
+          role: item.role === "user" ? "user" : "assistant",
+          content: item.text
+        }))
+      ];
 
       payload = {
-        contents,
-        systemInstruction: {
-          parts: [{ text: systemInstructionText }]
-        },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              accepted: { type: "BOOLEAN" },
-              ja: { type: "STRING" },
-              zh: { type: "STRING" },
-              feedback: { type: "STRING" },
-              completed_checkpoints: {
-                type: "ARRAY",
-                items: { type: "NUMBER" }
-              },
-              mission_completed: { type: "BOOLEAN" }
-            },
-            required: ["accepted", "ja", "zh", "feedback", "completed_checkpoints", "mission_completed"]
-          }
-        }
+        model,
+        messages,
+        response_format: { type: "json_object" }
       };
     }
 
-    const geminiResponse = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    const openRouterResponse = await fetchOpenRouterChat(key, payload);
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      response.writeHead(geminiResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
+    if (!openRouterResponse.ok) {
+      const errText = await openRouterResponse.text();
+      response.writeHead(openRouterResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
       response.end(errText);
       return;
     }
 
-    const data = await geminiResponse.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+    const data = await openRouterResponse.json();
+    const rawText = readOpenRouterMessage(data);
     
     let cleanText = rawText.trim();
     if (cleanText.startsWith("```")) {
@@ -472,7 +454,7 @@ ${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
     response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
     response.end(JSON.stringify({ success: true, result: JSON.parse(cleanText) }));
   } catch (error) {
-    console.error("Gemini chat error:", error);
+    console.error("OpenRouter chat error:", error);
     response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
     response.end(error.message || "Internal server error");
   }

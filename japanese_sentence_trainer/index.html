@@ -108,20 +108,20 @@
 
         <details class="settings-details">
           <summary>
-            <h3>Gemini 配置</h3>
+            <h3>OpenRouter 配置</h3>
             <button id="saveGeminiButton" type="button" onclick="event.stopPropagation()">保存</button>
           </summary>
           <div class="settings-content">
             <div class="voice-settings">
               <label>
                 <span>API Key</span>
-                <input id="geminiKey" autocomplete="off" placeholder="保存到本机浏览器" type="password" />
+                <input id="geminiKey" autocomplete="off" placeholder="OpenRouter API Key，保存到本机浏览器" type="password" />
               </label>
               <label>
                 <span>Model</span>
-                <input id="geminiModel" autocomplete="off" placeholder="gemini-1.5-flash" />
+                <input id="geminiModel" autocomplete="off" placeholder="openrouter/owl-alpha" />
               </label>
-              <p id="geminiStatus">填写后点击讲解刷新，可生成词汇和文法说明。</p>
+              <p id="geminiStatus">填写 OpenRouter API Key 和模型名称后，可生成翻译、讲解与 AI 对练。</p>
             </div>
           </div>
         </details>
@@ -276,6 +276,6 @@
     <script src="trainer_core.js?v=202605311146"></script>
     <script src="ai_chat_helpers.js?v=202605311310"></script>
     <script src="speech_cache.js?v=202605311310"></script>
-    <script src="app.js?v=202605311310"></script>
+    <script src="app.js?v=202606110930"></script>
   </body>
 </html>
