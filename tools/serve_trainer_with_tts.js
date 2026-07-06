@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { generateBackground } = require("./generate_bg_helper");
+const { listBundleDates, readBundle, runEditorialDay } = require("./editorial_pipeline.js");
 
 const root = path.resolve(__dirname, "..");
 const host = "127.0.0.1";
@@ -42,6 +43,18 @@ http
         await handleGenerateBackground(request, response);
         return;
       }
+      if (url.pathname === "/api/editorial/run") {
+        await handleEditorialRun(request, response);
+        return;
+      }
+      if (url.pathname === "/api/editorial/day") {
+        await handleEditorialDay(request, response, url);
+        return;
+      }
+      if (url.pathname === "/api/editorial/dates") {
+        await handleEditorialDates(request, response);
+        return;
+      }
       serveStatic(url.pathname, response);
     } catch (error) {
       response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
@@ -50,7 +63,54 @@ http
   })
   .listen(port, host, () => {
     console.log(`Japanese trainer: http://${host}:${port}/japanese_sentence_trainer/index.html`);
+    console.log(`Editorial trainer: http://${host}:${port}/phase2_editorial_training/editorial.html`);
   });
+
+async function handleEditorialRun(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  const body = JSON.parse(await readBody(request));
+  const result = await runEditorialDay({
+    date: body.date,
+    apiKey: String(body.apiKey || "").trim(),
+    model: String(body.model || "").trim(),
+    forceFetch: Boolean(body.forceFetch),
+    forceAnalyze: Boolean(body.forceAnalyze),
+    forceResearch: Boolean(body.forceResearch),
+  });
+  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify(result));
+}
+
+async function handleEditorialDay(request, response, url) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  const dateKey = url.searchParams.get("date");
+  const bundle = readBundle(dateKey);
+  if (!bundle) {
+    response.writeHead(404, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ error: "Bundle not found" }));
+    return;
+  }
+  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify({ bundle }));
+}
+
+async function handleEditorialDates(request, response) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify({ dates: listBundleDates() }));
+}
 
 function serveStatic(urlPath, response) {
   const requested = path.normalize(path.join(root, decodeURIComponent(urlPath)));

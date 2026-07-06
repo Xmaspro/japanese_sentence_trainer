@@ -7,7 +7,14 @@
     "start": "node tools/serve_trainer_with_tts.js",
     "test": "node --test",
     "check": "node --check japanese_sentence_trainer/app.js japanese_sentence_trainer/trainer_core.js tools/serve_trainer_with_tts.js",
-    "build:corpus": "node tools/dialogue_corpus_builder.js"
+    "build:corpus": "node tools/dialogue_corpus_builder.js",
+    "editorial:new-day": "node tools/new_editorial_day.js",
+    "editorial:fetch-asahi": "node tools/asahi_editorial_fetcher.js",
+    "editorial:show": "node tools/show_editorial_day.js",
+    "editorial:render": "node tools/render_editorial_day.js",
+    "editorial:view": "node tools/open_editorial_view.js",
+    "editorial:web": "node tools/serve_trainer_with_tts.js",
+    "editorial:github-sync": "node tools/sync_editorial_github.js --push"
   },
   "private": true
 }

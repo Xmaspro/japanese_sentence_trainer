@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>社说训练 Editorial Trainer</title>
+  <link rel="stylesheet" href="./editorial.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>社说训练</h1>
+      <p>选择日期 → 自动抓取朝日社说 → 生成词汇 / 语法 / 讲解 / 口语素材</p>
+    </header>
+
+    <section class="panel controls">
+      <div class="row">
+        <label>日期
+          <input id="dateInput" type="date" />
+        </label>
+        <label>OpenRouter API Key
+          <input id="apiKeyInput" type="password" placeholder="与主训练器相同，仅存本机浏览器" />
+        </label>
+        <label>模型
+          <input id="modelInput" type="text" value="openrouter/owl-alpha" />
+        </label>
+        <button id="runBtn" type="button">开始</button>
+        <button id="reloadBtn" class="secondary" type="button">读取缓存</button>
+      </div>
+      <div id="status" class="status">请选择日期后点击「开始」。</div>
+    </section>
+
+    <section id="content" class="hidden">
+      <div class="meta-line" id="headlineMeta"></div>
+      <h2 id="headlineTitle"></h2>
+
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="article" type="button">正文</button>
+        <button class="tab-btn" data-tab="vocab" type="button">词汇</button>
+        <button class="tab-btn" data-tab="grammar" type="button">语法</button>
+        <button class="tab-btn" data-tab="lecture" type="button">讲解</button>
+        <button class="tab-btn" data-tab="speaking" type="button">口语</button>
+      </div>
+
+      <section class="panel tab-panel active" id="article" role="tabpanel"></section>
+      <section class="panel tab-panel" id="vocab" role="tabpanel"></section>
+      <section class="panel tab-panel" id="grammar" role="tabpanel"></section>
+      <section class="panel tab-panel" id="lecture" role="tabpanel"></section>
+      <section class="panel tab-panel" id="speaking" role="tabpanel"></section>
+    </section>
+  </div>
+  <script src="./editorial.js"></script>
+</body>
+</html>

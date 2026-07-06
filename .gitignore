@@ -3,3 +3,13 @@ node_modules/
 tools/.voicevox_cache/
 tools/.microsoft_cache/
 japanese_sentence_trainer/assets/backgrounds/generated/
+phase2_editorial_training/bundles/**
+!phase2_editorial_training/bundles/.gitkeep
+phase2_editorial_training/views/**
+!phase2_editorial_training/views/.gitkeep
+phase2_editorial_training/editorial_readings/fetched/**
+!phase2_editorial_training/editorial_readings/fetched/.gitkeep
+phase2_editorial_training/editorial_readings/scans/**
+!phase2_editorial_training/editorial_readings/scans/.gitkeep
+phase2_editorial_training/editorial_speaking/recordings/**
+!phase2_editorial_training/editorial_speaking/recordings/.gitkeep

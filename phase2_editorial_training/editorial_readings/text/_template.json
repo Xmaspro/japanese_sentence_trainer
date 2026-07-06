@@ -1,0 +1,35 @@
+{
+  "date": "YYYY-MM-DD",
+  "newspaper": "asahi",
+  "newspaperLabel": "朝日新聞",
+  "section": "社説",
+  "title": "",
+  "sourceUrl": "",
+  "fetchedPath": "",
+  "images": [
+    "phase2_editorial_training/editorial_readings/scans/YYYY-MM-DD/asahi_editorial_01.jpg"
+  ],
+  "extractedText": {
+    "title": "",
+    "lead": "",
+    "keyParagraphs": [],
+    "ocrRaw": "",
+    "proofread": false,
+    "proofreadNotes": ""
+  },
+  "reading": {
+    "topic": "",
+    "newspaperStance": "",
+    "keyReason": "",
+    "summaryJa": "",
+    "readMinutes": 0,
+    "vocab": [
+      {
+        "lemma": "",
+        "reading": "",
+        "meaningZh": "",
+        "exampleJa": ""
+      }
+    ]
+  }
+}

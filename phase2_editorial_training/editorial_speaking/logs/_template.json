@@ -1,0 +1,45 @@
+{
+  "date": "YYYY-MM-DD",
+  "linkedReading": "phase2_editorial_training/editorial_readings/text/YYYY-MM-DD.json",
+  "newspaper": "asahi",
+  "exercises": {
+    "summary30s": {
+      "prompt": "何の話？新聞はどう言ってる？なぜ？",
+      "script": "",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/summary_30s.m4a",
+      "done": false
+    },
+    "desuMasuConversion": [
+      {
+        "originalFromEditorial": "",
+        "spoken": ""
+      }
+    ],
+    "myOpinion": {
+      "stance": "agree",
+      "script": "",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/opinion.m4a"
+    },
+    "explainKeyword": {
+      "keyword": "",
+      "spokenExplanation": ""
+    },
+    "retellNextDay": {
+      "dueDate": "",
+      "script": "",
+      "recording": "",
+      "done": false
+    }
+  },
+  "weeklyRotation": {
+    "mon": "asahi",
+    "tue": "nikkei",
+    "wed": "asahi",
+    "thu": "nikkei",
+    "fri": "asahi",
+    "sat": "nikkei",
+    "sun": "review"
+  },
+  "minutes": 0,
+  "done": false
+}
