@@ -3,11 +3,37 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { generateBackground } = require("./generate_bg_helper");
-const { listBundleDates, readBundle, runEditorialDay } = require("./editorial_pipeline.js");
+const { ensureSpeakingSteps } = require("./asahi_editorial_fetcher.js");
+const {
+  findBundleForRequest,
+  listBundleDates,
+  listBundleSummariesForDate,
+  listEditorialsForDate,
+  runEditorialDay,
+} = require("./editorial_pipeline.js");
+
+function withEnsuredSpeaking(bundle) {
+  if (!bundle?.article?.paragraphs?.length) return bundle;
+  return {
+    ...bundle,
+    speaking: ensureSpeakingSteps(bundle.speaking, {
+      title: bundle.source?.title || "",
+      paragraphs: bundle.article.paragraphs,
+      dateKey: bundle.date,
+      newspaperLabel: bundle.source?.newspaperLabel || "",
+    }),
+  };
+}
+const { DEFAULT_GEMINI_MODEL, generateGeminiChat, generateGeminiContent } = require("./gemini_client.js");
+const { getSchedulerStatus, startEditorialScheduler } = require("./editorial_scheduler.js");
+const { resolveGeminiRuntimeConfig } = require("./gemini_config.js");
+const { listScenePresets } = require("./scene_presets.js");
+const { generateSceneDialogue } = require("./scene_dialogue_pipeline.js");
 
 const root = path.resolve(__dirname, "..");
 const host = "127.0.0.1";
 const port = Number(process.env.PORT || 5177);
+const VOICEVOX_ENGINE_URL = String(process.env.VOICEVOX_ENGINE_URL || "http://127.0.0.1:50021").replace(/\/+$/, "");
 
 const contentTypes = {
   ".html": "text/html;charset=utf-8",
@@ -39,6 +65,10 @@ http
         await handleGeminiChat(request, response);
         return;
       }
+      if (url.pathname === "/api/gemini-generate") {
+        await handleGeminiGenerate(request, response);
+        return;
+      }
       if (url.pathname === "/api/generate-background") {
         await handleGenerateBackground(request, response);
         return;
@@ -55,8 +85,36 @@ http
         await handleEditorialDates(request, response);
         return;
       }
+      if (url.pathname === "/api/editorial/bundles") {
+        await handleEditorialBundles(request, response, url);
+        return;
+      }
+      if (url.pathname === "/api/editorial/list") {
+        await handleEditorialList(request, response, url);
+        return;
+      }
+      if (url.pathname === "/api/editorial/scheduler/status") {
+        await handleEditorialSchedulerStatus(request, response);
+        return;
+      }
+      if (url.pathname === "/api/scene-presets") {
+        await handleScenePresets(request, response);
+        return;
+      }
+      if (url.pathname === "/api/scene-dialogue") {
+        await handleSceneDialogue(request, response);
+        return;
+      }
+      if (url.pathname === "/api/voicevox/status") {
+        await handleVoicevoxStatus(request, response);
+        return;
+      }
       serveStatic(url.pathname, response);
     } catch (error) {
+      if (url.pathname.startsWith("/api/")) {
+        sendJsonError(response, 500, error.message || "Server error");
+        return;
+      }
       response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
       response.end(error.message || "Server error");
     }
@@ -64,25 +122,49 @@ http
   .listen(port, host, () => {
     console.log(`Japanese trainer: http://${host}:${port}/japanese_sentence_trainer/index.html`);
     console.log(`Editorial trainer: http://${host}:${port}/phase2_editorial_training/editorial.html`);
+    console.log("AI provider: Google Gemini API");
+    const scheduler = startEditorialScheduler();
+    if (scheduler.started) {
+      console.log(`Editorial scheduler: JST ${scheduler.scheduleHoursJst.join(", ")} (every ${scheduler.intervalMs / 1000}s tick)`);
+    }
   });
+
+function sendJson(response, status, payload) {
+  response.writeHead(status, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify(payload));
+}
+
+function sendJsonError(response, status, message) {
+  sendJson(response, status, { error: message });
+}
 
 async function handleEditorialRun(request, response) {
   if (request.method !== "POST") {
-    response.writeHead(405);
-    response.end("Method not allowed");
+    sendJsonError(response, 405, "Method not allowed");
     return;
   }
-  const body = JSON.parse(await readBody(request));
-  const result = await runEditorialDay({
-    date: body.date,
-    apiKey: String(body.apiKey || "").trim(),
-    model: String(body.model || "").trim(),
-    forceFetch: Boolean(body.forceFetch),
-    forceAnalyze: Boolean(body.forceAnalyze),
-    forceResearch: Boolean(body.forceResearch),
-  });
-  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
-  response.end(JSON.stringify(result));
+  try {
+    const body = JSON.parse(await readBody(request));
+    const runtime = resolveGeminiRuntimeConfig({
+      explicitKey: body.apiKey,
+      model: body.model,
+    });
+    const result = await runEditorialDay({
+      date: body.date,
+      source: String(body.source || "asahi").trim(),
+      url: String(body.url || "").trim(),
+      apiKey: runtime.apiKey,
+      model: runtime.model,
+      fallbackModels: runtime.fallbackModels,
+      forceFetch: Boolean(body.forceFetch),
+      forceAnalyze: Boolean(body.forceAnalyze),
+      forceResearch: Boolean(body.forceResearch),
+    });
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify(result));
+  } catch (error) {
+    sendJsonError(response, 500, error.message || "Editorial run failed");
+  }
 }
 
 async function handleEditorialDay(request, response, url) {
@@ -91,15 +173,18 @@ async function handleEditorialDay(request, response, url) {
     response.end("Method not allowed");
     return;
   }
-  const dateKey = url.searchParams.get("date");
-  const bundle = readBundle(dateKey);
+  const bundle = findBundleForRequest({
+    date: url.searchParams.get("date"),
+    url: url.searchParams.get("url") || "",
+    id: url.searchParams.get("id") || "",
+  });
   if (!bundle) {
     response.writeHead(404, { "Content-Type": "application/json;charset=utf-8" });
     response.end(JSON.stringify({ error: "Bundle not found" }));
     return;
   }
   response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
-  response.end(JSON.stringify({ bundle }));
+  response.end(JSON.stringify({ bundle: withEnsuredSpeaking(bundle) }));
 }
 
 async function handleEditorialDates(request, response) {
@@ -110,6 +195,48 @@ async function handleEditorialDates(request, response) {
   }
   response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
   response.end(JSON.stringify({ dates: listBundleDates() }));
+}
+
+async function handleEditorialSchedulerStatus(request, response) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify(getSchedulerStatus()));
+}
+
+async function handleEditorialList(request, response, url) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  try {
+    const date = String(url.searchParams.get("date") || "").trim();
+    const source = String(url.searchParams.get("source") || "asahi").trim();
+    const items = await listEditorialsForDate({ source, date });
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ date, source, items }));
+  } catch (error) {
+    sendJsonError(response, 500, error.message || "Editorial list failed");
+  }
+}
+
+async function handleEditorialBundles(request, response, url) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+  const date = String(url.searchParams.get("date") || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    sendJsonError(response, 400, "Invalid date");
+    return;
+  }
+  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+  response.end(JSON.stringify({ date, bundles: listBundleSummariesForDate(date) }));
 }
 
 function serveStatic(urlPath, response) {
@@ -140,52 +267,97 @@ async function handleGeminiExplain(request, response) {
     return;
   }
 
-  const body = JSON.parse(await readBody(request));
-  const key = String(body.key || "").trim();
-  const model = String(body.model || "openrouter/owl-alpha").trim();
-  if (!key || !body.sentence) {
-    response.writeHead(400);
-    response.end("Missing OpenRouter key or sentence");
+  try {
+    const body = JSON.parse(await readBody(request));
+    const key = String(body.key || "").trim();
+    const model = String(body.model || DEFAULT_GEMINI_MODEL).trim();
+    if (!key || !body.sentence) {
+      response.writeHead(400);
+      response.end("Missing Gemini API key or sentence");
+      return;
+    }
+
+    const result = await generateGeminiContent({
+      apiKey: key,
+      model,
+      prompt: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(body.sentence)}`,
+      temperature: 0.3,
+    });
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ explanation: result.text }));
+  } catch (error) {
+    response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end(error.message || "Gemini explain failed");
+  }
+}
+
+async function handleGeminiGenerate(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
     return;
   }
 
-  const openRouterResponse = await fetchOpenRouterChat(key, {
-    model,
-    messages: [
-      {
-        role: "user",
-        content: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(body.sentence)}`,
-      },
-    ],
-  });
+  try {
+    const body = JSON.parse(await readBody(request));
+    const key = String(body.key || "").trim();
+    const model = String(body.model || DEFAULT_GEMINI_MODEL).trim();
+    const prompt = String(body.prompt || "").trim();
+    if (!key || !prompt) {
+      response.writeHead(400);
+      response.end("Missing Gemini API key or prompt");
+      return;
+    }
 
-  if (!openRouterResponse.ok) {
-    response.writeHead(openRouterResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
-    response.end(await openRouterResponse.text());
-    return;
+    const result = await generateGeminiContent({
+      apiKey: key,
+      model,
+      prompt,
+      jsonMode: Boolean(body.jsonMode),
+      temperature: body.temperature ?? 0.2,
+    });
+    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+    response.end(JSON.stringify({ text: result.text, model: result.model }));
+  } catch (error) {
+    response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
+    response.end(error.message || "Gemini generate failed");
   }
-
-  const data = await openRouterResponse.json();
-  const explanation = readOpenRouterMessage(data);
-  response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
-  response.end(JSON.stringify({ explanation }));
 }
 
-function fetchOpenRouterChat(key, payload) {
-  return fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${key}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://127.0.0.1:5177",
-      "X-Title": "Japanese Sentence Trainer",
-    },
-    body: JSON.stringify(payload),
-  });
+function stripJsonFence(text) {
+  let cleanText = String(text || "").trim();
+  if (cleanText.startsWith("```")) {
+    cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+  }
+  return cleanText;
 }
 
-function readOpenRouterMessage(data) {
-  return data.choices?.[0]?.message?.content || "";
+function stripSceneDialoguePayload(pipelineResult) {
+  const {
+    mission: _mission,
+    geminiUsed: _geminiUsed,
+    geminiModel: _geminiModel,
+    fallbackUsed: _fallbackUsed,
+    corpusCandidates: _corpusCandidates,
+    ...rest
+  } = pipelineResult || {};
+  return rest;
+}
+
+function buildMissionFallback(pipelineResult) {
+  const first = pipelineResult?.utterances?.find((item) => item.speaker === "B") || pipelineResult?.utterances?.[1];
+  const firstUtterance = first?.ja || pipelineResult?.utterances?.[0]?.ja || "こんにちは。";
+  const firstZh = first?.zh || pipelineResult?.utterances?.[0]?.zh || "";
+  const label = pipelineResult?.sceneLabel || "生活场景";
+
+  return {
+    character_name: "ずんだもん",
+    character_desc: `${label}对练角色`,
+    mission_goal: pipelineResult?.sceneSummaryZh || pipelineResult?.sceneDescription || "完成自然口语对练。",
+    checkpoints: (pipelineResult?.keyPhrases || []).slice(0, 4).map((item, index) => `阶段 ${index + 1}：说出「${item.ja}」的自然用法`),
+    first_utterance: firstUtterance,
+    first_utterance_zh: firstZh,
+  };
 }
 
 function formatDialogueForGemini(sentence) {
@@ -270,6 +442,30 @@ if (!fs.existsSync(voicevoxCacheDir)) {
   fs.mkdirSync(voicevoxCacheDir, { recursive: true });
 }
 
+async function handleVoicevoxStatus(request, response) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  try {
+    const versionResponse = await fetch(`${VOICEVOX_ENGINE_URL}/version`);
+    if (!versionResponse.ok) {
+      sendJson(response, 503, { ok: false, engineUrl: VOICEVOX_ENGINE_URL, message: `version ${versionResponse.status}` });
+      return;
+    }
+    const version = await versionResponse.json();
+    sendJson(response, 200, { ok: true, engineUrl: VOICEVOX_ENGINE_URL, version });
+  } catch (error) {
+    sendJson(response, 503, {
+      ok: false,
+      engineUrl: VOICEVOX_ENGINE_URL,
+      message: error.message || "VOICEVOX engine unreachable",
+    });
+  }
+}
+
 async function handleVoicevoxTts(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405);
@@ -304,7 +500,7 @@ async function handleVoicevoxTts(request, response) {
 
   try {
     // Step 1: Create Audio Query
-    const queryUrl = `http://127.0.0.1:50021/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`;
+    const queryUrl = `${VOICEVOX_ENGINE_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`;
     const queryResponse = await fetch(queryUrl, { method: "POST" });
     if (!queryResponse.ok) {
       throw new Error(`Failed to create audio query: ${queryResponse.status}`);
@@ -312,7 +508,7 @@ async function handleVoicevoxTts(request, response) {
     const queryJson = await queryResponse.json();
 
     // Step 2: Synthesis
-    const synthUrl = `http://127.0.0.1:50021/synthesis?speaker=${speaker}`;
+    const synthUrl = `${VOICEVOX_ENGINE_URL}/synthesis?speaker=${speaker}`;
     const synthResponse = await fetch(synthUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -392,6 +588,45 @@ async function handleGenerateBackground(request, response) {
   }
 }
 
+async function handleScenePresets(request, response) {
+  if (request.method !== "GET") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  sendJson(response, 200, { presets: listScenePresets() });
+}
+
+async function handleSceneDialogue(request, response) {
+  if (request.method !== "POST") {
+    response.writeHead(405);
+    response.end("Method not allowed");
+    return;
+  }
+
+  try {
+    const body = JSON.parse(await readBody(request));
+    const runtime = resolveGeminiRuntimeConfig({
+      explicitKey: body.key,
+      model: body.model,
+    });
+
+    const result = await generateSceneDialogue({
+      presetId: body.presetId,
+      sceneDescription: body.sceneDescription,
+      apiKey: runtime.apiKey,
+      model: runtime.model,
+      fallbackModels: runtime.fallbackModels,
+      includeMission: Boolean(body.includeMission),
+    });
+
+    sendJson(response, 200, { success: true, result });
+  } catch (error) {
+    sendJsonError(response, 500, error.message || "Scene dialogue failed");
+  }
+}
+
 async function handleGeminiChat(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405);
@@ -402,7 +637,7 @@ async function handleGeminiChat(request, response) {
   try {
     const body = JSON.parse(await readBody(request));
     const key = String(body.key || "").trim();
-    const model = String(body.model || "openrouter/owl-alpha").trim();
+    const model = String(body.model || DEFAULT_GEMINI_MODEL).trim();
     const initCustom = !!body.initCustom;
     const sceneDescription = String(body.sceneDescription || "").trim();
     const history = body.history || [];
@@ -410,45 +645,34 @@ async function handleGeminiChat(request, response) {
 
     if (!key) {
       response.writeHead(400);
-      response.end("Missing OpenRouter Key");
+      response.end("Missing Gemini API key");
       return;
     }
 
-    let payload;
-
     if (initCustom) {
-      const promptText = `你是一名专业的日语口语教学大纲设计师。请根据用户输入的【意向生活场景】，结合日本社会文化、礼仪规范和日常生活习惯，为用户精心编排设计一个情景化、任务驱动型的日语口语角色扮演通关任务。
+      const runtime = resolveGeminiRuntimeConfig({ explicitKey: key, model });
+      const pipelineResult = await generateSceneDialogue({
+        presetId: body.presetId,
+        sceneDescription,
+        apiKey: runtime.apiKey,
+        model: runtime.model,
+        fallbackModels: runtime.fallbackModels,
+        includeMission: true,
+      });
 
-场景描述：
-"${sceneDescription}"
+      const mission = pipelineResult.mission || buildMissionFallback(pipelineResult);
+      response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+      response.end(
+        JSON.stringify({
+          success: true,
+          result: mission,
+          sceneDialogue: stripSceneDialoguePayload(pipelineResult),
+        }),
+      );
+      return;
+    }
 
-你必须设计：
-1. 角色人设（例如：如果是居酒屋，角色是店员ずんだもん/Zundamon，音色甜美或带のだ等可爱口癖）。
-2. 通关任务目标（需要明确融入日本社会文化/礼仪习俗的背景说明，提示用户应该注意什么，字数在150字以内）。
-3. 逻辑关卡（Checkpoints）：根据这个场景的复杂程度，动态设计 3 到 5 个【口语表达逻辑关卡】（关卡数视场景而定，通常3-5个为佳）。例如：第一步询问意愿，第二步提出特定要求或说明，第三步应对突发情况，第四步支付并用敬语表达感谢。
-4. 角色开局说的第一句话（日文及中文翻译，必须十分自然、口语化，不超过2句）。
-
-请你必须仅返回一个合法的 JSON 格式对象，不要包含任何 markdown 格式标记（如 \`\`\`json ）。
-该 JSON 必须符合以下严格的 schema 格式：
-{
-  "character_name": "角色名字（如：店员/医生/中介/ずんだもん）",
-  "character_desc": "简短人设说明",
-  "mission_goal": "详细的通关任务目标（含日本文化/社交礼仪说明）",
-  "checkpoints": [
-    "阶段 1：[逻辑描述] (如：向店员表达免税需求，并出示护照)",
-    "阶段 2：[逻辑描述]...",
-    "阶段 3：[逻辑描述]..."
-  ],
-  "first_utterance": "角色开口第一句话的日语（如：いらっしゃいませ！免税手続きですね。パスポートを拝见できますか？）",
-  "first_utterance_zh": "第一句话的中文翻译"
-}`;
-
-      payload = {
-        model,
-        messages: [{ role: "user", content: promptText }],
-        response_format: { type: "json_object" }
-      };
-    } else {
+    {
       if (!mission) {
         response.writeHead(400);
         response.end("Missing active mission context");
@@ -487,34 +711,19 @@ ${mission.checkpoints.map((cp, idx) => `- 关卡 ${idx + 1}: ${cp}`).join("\n")}
         }))
       ];
 
-      payload = {
+      const result = await generateGeminiChat({
+        apiKey: key,
         model,
         messages,
-        response_format: { type: "json_object" }
-      };
+        jsonMode: true,
+        temperature: 0.4,
+      });
+      const cleanText = stripJsonFence(result.text);
+      response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
+      response.end(JSON.stringify({ success: true, result: JSON.parse(cleanText) }));
     }
-
-    const openRouterResponse = await fetchOpenRouterChat(key, payload);
-
-    if (!openRouterResponse.ok) {
-      const errText = await openRouterResponse.text();
-      response.writeHead(openRouterResponse.status, { "Content-Type": "text/plain;charset=utf-8" });
-      response.end(errText);
-      return;
-    }
-
-    const data = await openRouterResponse.json();
-    const rawText = readOpenRouterMessage(data);
-    
-    let cleanText = rawText.trim();
-    if (cleanText.startsWith("```")) {
-      cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
-    }
-
-    response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
-    response.end(JSON.stringify({ success: true, result: JSON.parse(cleanText) }));
   } catch (error) {
-    console.error("OpenRouter chat error:", error);
+    console.error("Gemini chat error:", error);
     response.writeHead(500, { "Content-Type": "text/plain;charset=utf-8" });
     response.end(error.message || "Internal server error");
   }

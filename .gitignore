@@ -1,5 +1,7 @@
 .DS_Store
 node_modules/
+mcps/
+terminals/
 tools/.voicevox_cache/
 tools/.microsoft_cache/
 japanese_sentence_trainer/assets/backgrounds/generated/
@@ -13,3 +15,6 @@ phase2_editorial_training/editorial_readings/scans/**
 !phase2_editorial_training/editorial_readings/scans/.gitkeep
 phase2_editorial_training/editorial_speaking/recordings/**
 !phase2_editorial_training/editorial_speaking/recordings/.gitkeep
+phase2_editorial_training/editorial_schedule.json
+phase2_editorial_training/editorial_scheduler_state.json
+phase2_editorial_training/editorial_scheduler.log

@@ -7,47 +7,92 @@
   <link rel="stylesheet" href="./editorial.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>社说训练</h1>
-      <p>选择日期 → 自动抓取朝日社说 → 生成词汇 / 语法 / 讲解 / 口语素材</p>
-    </header>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <section class="calendar-panel" aria-label="日期选择">
+        <div class="calendar-head">
+          <button id="calendarPrev" class="calendar-nav" type="button" aria-label="上个月">‹</button>
+          <h2 id="calendarMonth" class="calendar-month"></h2>
+          <button id="calendarNext" class="calendar-nav" type="button" aria-label="下个月">›</button>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="日历"></div>
+      </section>
 
-    <section class="panel controls">
-      <div class="row">
-        <label>日期
-          <input id="dateInput" type="date" />
-        </label>
-        <label>OpenRouter API Key
-          <input id="apiKeyInput" type="password" placeholder="与主训练器相同，仅存本机浏览器" />
+      <section class="bundle-picker" aria-label="已生成">
+        <h3 id="bundlePickerTitle">已生成</h3>
+        <div id="bundleList" class="bundle-list">
+          <p class="muted bundle-empty">选择日期后显示本地已生成的社说。</p>
+        </div>
+      </section>
+    </aside>
+
+    <div class="main-column">
+      <header class="page-header">
+        <div class="page-intro">
+          <h1>社说训练</h1>
+          <p>右侧选择新闻源与日期，查询标题后生成词汇 / 语法 / 讲解 / 口语素材</p>
+        </div>
+        <div id="status" class="status" role="status">请选择日期并查询标题。</div>
+      </header>
+
+      <input id="dateInput" class="hidden" type="date" />
+      <input id="urlInput" class="hidden" type="url" />
+
+      <section id="content" class="hidden">
+        <div class="content-head">
+          <div class="meta-line" id="headlineMeta"></div>
+          <h2 id="headlineTitle"></h2>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="article" type="button">正文</button>
+          <button class="tab-btn" data-tab="lecture" type="button">讲解</button>
+          <button class="tab-btn" data-tab="speaking" type="button">口语</button>
+        </div>
+
+        <section class="panel tab-panel article-panel active" id="article" role="tabpanel"></section>
+        <section class="panel tab-panel" id="lecture" role="tabpanel"></section>
+        <section class="panel tab-panel" id="speaking" role="tabpanel"></section>
+      </section>
+    </div>
+
+    <aside class="settings-rail" aria-label="工作区">
+      <section class="settings-panel">
+        <h3>模型设置</h3>
+        <label>Gemini API Key
+          <input id="apiKeyInput" type="password" placeholder="Google AI Studio API Key" />
         </label>
         <label>模型
-          <input id="modelInput" type="text" value="openrouter/owl-alpha" />
+          <input id="modelInput" type="text" value="gemini-2.0-flash" />
         </label>
-        <button id="runBtn" type="button">开始</button>
-        <button id="reloadBtn" class="secondary" type="button">读取缓存</button>
-      </div>
-      <div id="status" class="status">请选择日期后点击「开始」。</div>
-    </section>
+        <p id="apiKeyHint" class="muted api-key-hint hidden"></p>
+      </section>
 
-    <section id="content" class="hidden">
-      <div class="meta-line" id="headlineMeta"></div>
-      <h2 id="headlineTitle"></h2>
+      <section class="workspace-panel">
+        <h3>抓取社说</h3>
 
-      <div class="tabs" role="tablist">
-        <button class="tab-btn active" data-tab="article" type="button">正文</button>
-        <button class="tab-btn" data-tab="vocab" type="button">词汇</button>
-        <button class="tab-btn" data-tab="grammar" type="button">语法</button>
-        <button class="tab-btn" data-tab="lecture" type="button">讲解</button>
-        <button class="tab-btn" data-tab="speaking" type="button">口语</button>
-      </div>
+        <div class="field-label">新闻源</div>
+        <div class="source-switch" role="radiogroup" aria-label="新闻源">
+          <button id="sourceAsahi" class="source-btn is-active" type="button" data-source="asahi" aria-pressed="true">朝日新闻</button>
+          <button id="sourceNikkei" class="source-btn" type="button" data-source="nikkei" aria-pressed="false">日本経済新聞</button>
+        </div>
 
-      <section class="panel tab-panel active" id="article" role="tabpanel"></section>
-      <section class="panel tab-panel" id="vocab" role="tabpanel"></section>
-      <section class="panel tab-panel" id="grammar" role="tabpanel"></section>
-      <section class="panel tab-panel" id="lecture" role="tabpanel"></section>
-      <section class="panel tab-panel" id="speaking" role="tabpanel"></section>
-    </section>
+        <label class="workspace-field">日期
+          <input id="pickerDateInput" type="date" />
+        </label>
+
+        <button id="queryTitlesBtn" class="workspace-btn secondary" type="button">查询标题</button>
+
+        <div id="titleList" class="title-list">
+          <p class="muted title-empty">选择新闻源和日期后点击「查询标题」。</p>
+        </div>
+
+        <button id="generateBtn" class="workspace-btn" type="button" disabled>生成</button>
+      </section>
+    </aside>
   </div>
   <script src="./editorial.js"></script>
 </body>

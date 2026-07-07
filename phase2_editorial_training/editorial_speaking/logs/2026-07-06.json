@@ -1,0 +1,58 @@
+{
+  "date": "2026-07-06",
+  "linkedReading": "phase2_editorial_training/editorial_readings/text/2026-07-06.json",
+  "newspaper": "asahi",
+  "exercises": {
+    "summary30s": {
+      "prompt": "何の話？新聞はどう言ってる？なぜ？",
+      "script": "【下書き・読んだあと自分の言葉に直す】\n今日の社説は「中国の民族新法　国外適用は容認できぬ」についてです。\n要するに、国内を締めつけるだけでなく、国外にも影響を及ぼしかねない。中国で１日に施行された「民族団結進歩促進法」にそんな懸念が膨らむ。\n朝日新聞は最後に、中国国内の厳しい統制が、国境を越えて他国の自由を縛るようなことがあれば、決してひとごとではない。日本を含む各国は、新法の運用を厳しく監視する必要がある。",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-06/summary_30s.m4a",
+      "done": false
+    },
+    "desuMasuConversion": [
+      {
+        "originalFromEditorial": "教育や文化活動で中華民族の共同体意識を高め、テロや「民族分裂活動」を取り締まる――これが新法の狙いだ。",
+        "spoken": "教育や文化活動で中華民族の共同体意識を高め、テロや「民族分裂活動」を取り締まる――これが新法の狙いです。"
+      },
+      {
+        "originalFromEditorial": "憲法は民族の平等をうたうが、実際は漢族が圧倒的に優位な体制だ。",
+        "spoken": "憲法は民族の平等をうたうが、実際は漢族が圧倒的に優位な体制です。"
+      },
+      {
+        "originalFromEditorial": "少数民族言語の尊重もうたってはいるが、主眼がどこにあるかは明白だ。",
+        "spoken": "少数民族言語の尊重もうたってはいるが、主眼がどこにあるかは明白です。"
+      },
+      {
+        "originalFromEditorial": "さらに看過できないのが、新法を中国域外にも適用するとした点だ。",
+        "spoken": "さらに看過できないのが、新法を中国域外にも適用するとした点です。"
+      }
+    ],
+    "myOpinion": {
+      "stance": "undecided",
+      "script": "題材：中国の民族新法　国外適用は容認できぬ\n私は朝日の主張に（賛成 / 反対 / どちらとも言えない）と思います。\n理由1：____________________\n理由2：____________________\n結論：____________________",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-06/opinion.m4a"
+    },
+    "explainKeyword": {
+      "keyword": "民族団結進歩促進法",
+      "spokenExplanation": "キーワード：民族団結進歩促進法\n意味：____________________\n本文での使い方：国内を締めつけるだけでなく、国外にも影響を及ぼしかねない。中国で１日に施行された「民族団結進歩促進法」にそんな懸念が膨らむ。\n自分の言葉で説明：____________________"
+    },
+    "retellNextDay": {
+      "dueDate": "2026-07-07",
+      "script": "【翌日リテル・見出しなしで】\n昨日の社説は「中国の民族新法　国外適用は容認できぬ」でした。\n要点：____________________\n新聞の立場：____________________\n自分の一言：____________________",
+      "recording": "",
+      "done": false
+    }
+  },
+  "weeklyRotation": {
+    "mon": "asahi",
+    "tue": "nikkei",
+    "wed": "asahi",
+    "thu": "nikkei",
+    "fri": "asahi",
+    "sat": "nikkei",
+    "sun": "review"
+  },
+  "minutes": 0,
+  "done": false,
+  "source": "editorial-bundle-sync"
+}

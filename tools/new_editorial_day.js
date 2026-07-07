@@ -92,11 +92,9 @@ function createDay(options = {}) {
     speaking.date = dateKey;
     speaking.newspaper = paper.newspaper;
     speaking.linkedReading = `phase2_editorial_training/editorial_readings/text/${dateKey}.json`;
-    speaking.exercises.summary30s.recording =
-      `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/summary_30s.m4a`;
-    speaking.exercises.myOpinion.recording =
-      `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/opinion.m4a`;
-    speaking.exercises.retellNextDay.dueDate = addDays(dateKey, 1);
+    if (speaking.exercises?.recording) {
+      speaking.exercises.recording = speaking.exercises.recording.replace("YYYY-MM-DD", dateKey);
+    }
     writeJson(speakingFile, speaking);
     created.push(speakingFile);
   }

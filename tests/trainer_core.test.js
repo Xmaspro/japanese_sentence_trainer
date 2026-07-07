@@ -17,6 +17,7 @@ const {
   getDialogueGroupsForCourse,
   getDialogueDisplayText,
   getSpeakerVoice,
+  getAiVoicevoxSpeakerId,
   summarizeCourseProgress,
   summarizeDialogueGroupProgress,
   filterCoursesForModule,
@@ -265,4 +266,11 @@ test("speaker voices select separate A and B voices", () => {
   assert.equal(getSpeakerVoice(settings, "A"), "ja-JP-NanamiNeural");
   assert.equal(getSpeakerVoice(settings, "B"), "ja-JP-KeitaNeural");
   assert.equal(getSpeakerVoice(settings, "C"), "ja-JP-NanamiNeural");
+});
+
+test("getAiVoicevoxSpeakerId defaults to metan and zundamon for AI dialogue", () => {
+  assert.equal(getAiVoicevoxSpeakerId({}, "A"), "2");
+  assert.equal(getAiVoicevoxSpeakerId({}, "B"), "3");
+  assert.equal(getAiVoicevoxSpeakerId({ speakerAVoice: "8", speakerBVoice: "1" }, "A"), "8");
+  assert.equal(getAiVoicevoxSpeakerId({ speakerAVoice: "8", speakerBVoice: "1" }, "B"), "1");
 });

@@ -1574,6 +1574,70 @@ body.vn-active .vn-controls {
   z-index: 1;
 }
 
+.vn-modal-content-wide {
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.vn-modal-content-wide h3,
+.vn-modal-content-wide > p {
+  text-align: center;
+}
+
+.scene-preset-section {
+  border-top: 1px dashed rgba(224, 169, 109, 0.3);
+  padding-top: 12px;
+}
+
+.scene-preset-label {
+  font-size: 12.5px;
+  color: rgba(243, 212, 162, 0.9);
+  margin: 0 0 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.scene-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scene-preset-btn {
+  background: rgba(13, 15, 30, 0.55);
+  border: 1px solid rgba(224, 169, 109, 0.45);
+  color: #f3d4a2;
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.scene-preset-btn:hover,
+.scene-preset-btn.is-selected {
+  background: linear-gradient(135deg, rgba(224, 169, 109, 0.35), rgba(224, 169, 109, 0.5));
+  border-color: #f3d4a2;
+  box-shadow: 0 0 10px rgba(224, 169, 109, 0.35);
+  transform: translateY(-1px);
+}
+
+.scene-preset-btn .preset-icon {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 560px) {
+  .scene-preset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .vn-modal-content h3 {
   font-size: 22px;
   margin-top: 0;
@@ -1766,6 +1830,101 @@ body.vn-active .vn-controls {
 .vn-ai-checklist-step-bullet {
   color: #e0a96d;
   font-weight: bold;
+}
+
+.vn-ai-corpus-panel {
+  background: rgba(13, 15, 30, 0.45);
+  border: 1px solid rgba(224, 169, 109, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.vn-ai-corpus-meta {
+  font-size: 12px;
+  color: rgba(243, 212, 162, 0.95);
+  margin: 0 0 6px;
+}
+
+.vn-ai-corpus-summary {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.vn-ai-corpus-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.vn-ai-corpus-lines li {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+  border-left: 2px solid rgba(224, 169, 109, 0.35);
+  padding-left: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.vn-ai-corpus-play-btn {
+  flex: 0 0 auto;
+  background: rgba(224, 169, 109, 0.2);
+  border: 1px solid rgba(224, 169, 109, 0.45);
+  color: #f3d4a2;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.vn-ai-corpus-play-btn:hover {
+  background: rgba(224, 169, 109, 0.4);
+}
+
+.vn-ai-corpus-line-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vn-ai-corpus-zh {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11.5px;
+}
+
+.vn-ai-aizuchi-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(224, 169, 109, 0.25);
+  color: #f3d4a2;
+  font-size: 10px;
+  vertical-align: middle;
+}
+
+.vn-ai-corpus-tips {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: rgba(243, 212, 162, 0.85);
+  line-height: 1.45;
+}
+
+.scene-preset-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
 }
 
 .vn-ai-checklist-step.is-completed .vn-ai-checklist-step-bullet {

@@ -1,0 +1,124 @@
+{
+  "date": "2026-07-08",
+  "linkedReading": "phase2_editorial_training/editorial_readings/text/2026-07-08.json",
+  "newspaper": "asahi",
+  "exercises": {
+    "flowTitle": "社论口语：一步一步说",
+    "flowHint": "按顺序完成每一步。先朗读口语范本，再换成自己的话大声说。",
+    "steps": [
+      {
+        "order": 1,
+        "key": "topic",
+        "title": "什么话题",
+        "promptJa": "何の話？",
+        "promptZh": "用 1～2 句です・ます说清今天社论在讨论什么",
+        "script": "【第1步·大声说·范本】\n今日の社説は「スポーツと政治　無法の独善　熱戦に冷水」についてです。\n要するに、スポーツの意義や価値を理解しようとしない、愚かな振る舞いと呼ぶべきだろう。",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step1_topic.m4a",
+        "done": false
+      },
+      {
+        "order": 2,
+        "key": "newspaper",
+        "title": "报纸怎么说",
+        "promptJa": "新聞はどう言ってる？",
+        "promptZh": "用口语复述朝日新闻的立场和主张（可先照范本念，再换成自己的话）",
+        "script": "【第2步·大声说·范本】\n朝日新聞は、この問題について次のように主張しています。\nスポーツを政治の思惑によってもてあそぶような独善があってはならありません。\nそのうえ、日本も他人事ではありません。",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step2_newspaper.m4a",
+        "done": false
+      },
+      {
+        "order": 3,
+        "key": "why",
+        "title": "为什么这样说",
+        "promptJa": "なぜ？",
+        "promptZh": "用口语说明理由和背景（可先照范本念，再换成自己的话）",
+        "script": "【第3步·大声说·范本】\n朝日新聞がそう言うのは、次のような背景があるからです。\nサッカーのワールドカップ（Ｗ杯）北中米大会決勝トーナメント１回戦で、米国選手が相手選手の足首を踏み、退場処分を受けたと言えます。\nさらに、問題は、この処分について開催地のトランプ米大統領が国際サッカー連盟（ＦＩＦＡ）のインファンティノ会長に電話をかけ、再考を働きかけたことです。",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step3_why.m4a",
+        "done": false
+      },
+      {
+        "order": 4,
+        "key": "keyword",
+        "title": "解释关键词",
+        "promptJa": "キーワードを説明",
+        "promptZh": "选 1 个关键词，用口语解释意思和用法",
+        "keyword": "再審査を求めた",
+        "script": "【第4步·大声说·范本】\nキーワード：再審査を求めた\n意味：____________________\n本文での使い方：両者は電話を認め、トランプ氏は「再審査を求めた」と釈明。インファンティノ会長は「（裁定を覆した）規律委員会は独立組織」とコメントし、関与を否定したが、これをうのみにする人はいないだろう。怒りとともに、熱戦に冷や水を浴びせられたような気分になる。\n自分の言葉で説明：____________________",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step4_keyword.m4a",
+        "done": false
+      },
+      {
+        "order": 5,
+        "key": "opinion",
+        "title": "我的观点",
+        "promptJa": "自分の意見",
+        "promptZh": "表明立场，给出两条理由",
+        "script": "【第5步·大声说·范本】\n題材：スポーツと政治　無法の独善　熱戦に冷水\n私は朝日の主張に（賛成 / 反対 / どちらとも言えない）と思います。\n理由1：____________________\n理由2：____________________\n結論：____________________",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step5_opinion.m4a",
+        "done": false
+      },
+      {
+        "order": 6,
+        "key": "retell",
+        "title": "隔天复述",
+        "promptJa": "翌日リテル",
+        "promptZh": "第二天不看原文，用自己的话复述",
+        "dueDate": "2026-07-09",
+        "script": "【第6步·翌日】\n昨日の社説は「スポーツと政治　無法の独善　熱戦に冷水」でした。\n要点：____________________\n新聞の立場：____________________\n自分の一言：____________________",
+        "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/step6_retell.m4a",
+        "done": false
+      }
+    ],
+    "summary30s": {
+      "prompt": "何の話？新聞はどう言ってる？なぜ？",
+      "script": "【下書き・読んだあと自分の言葉に直す】\n今日の社説は「スポーツと政治　無法の独善　熱戦に冷水」についてです。\n要するに、スポーツの意義や価値を理解しようとしない、愚かな振る舞いと呼ぶべきだろう。\n朝日新聞は最後に、スポーツを政治の思惑によってもてあそぶような独善があってはならない。",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/summary_30s.m4a",
+      "done": false
+    },
+    "desuMasuConversion": [
+      {
+        "originalFromEditorial": "問題は、この処分について開催地のトランプ米大統領が国際サッカー連盟（ＦＩＦＡ）のインファンティノ会長に電話をかけ、再考を働きかけたことだ。",
+        "spoken": "問題は、この処分について開催地のトランプ米大統領が国際サッカー連盟（ＦＩＦＡ）のインファンティノ会長に電話をかけ、再考を働きかけたことです。"
+      },
+      {
+        "originalFromEditorial": "参加者や観戦者には十全の配慮を図る国際大会では異例の姿だ。",
+        "spoken": "参加者や観戦者には十全の配慮を図る国際大会では異例の姿です。"
+      },
+      {
+        "originalFromEditorial": "参加予定の４５カ国・地域には、北朝鮮のように難しい関係の国もあるが、ホスト国としてすべての国の選手が公正に、力を出し切れる環境を整え守ることが大切だ。",
+        "spoken": "参加予定の４５カ国・地域には、北朝鮮のように難しい関係の国もあるが、ホスト国としてすべての国の選手が公正に、力を出し切れる環境を整え守ることが大切です。"
+      },
+      {
+        "originalFromEditorial": "政治家が審判の判定やルールに介入し、覆すようなことはあってはならない。",
+        "spoken": "政治家が審判の判定やルールに介入し、覆すようなことはあってはならありません。"
+      }
+    ],
+    "myOpinion": {
+      "stance": "undecided",
+      "script": "題材：スポーツと政治　無法の独善　熱戦に冷水\n私は朝日の主張に（賛成 / 反対 / どちらとも言えない）と思います。\n理由1：____________________\n理由2：____________________\n結論：____________________",
+      "recording": "phase2_editorial_training/editorial_speaking/recordings/2026-07-08/opinion.m4a"
+    },
+    "explainKeyword": {
+      "keyword": "再審査を求めた",
+      "spokenExplanation": "キーワード：再審査を求めた\n意味：____________________\n本文での使い方：両者は電話を認め、トランプ氏は「再審査を求めた」と釈明。インファンティノ会長は「（裁定を覆した）規律委員会は独立組織」とコメントし、関与を否定したが、これをうのみにする人はいないだろう。怒りとともに、熱戦に冷や水を浴びせられたような気分になる。\n自分の言葉で説明：____________________"
+    },
+    "retellNextDay": {
+      "dueDate": "2026-07-09",
+      "script": "【翌日リテル・見出しなしで】\n昨日の社説は「スポーツと政治　無法の独善　熱戦に冷水」でした。\n要点：____________________\n新聞の立場：____________________\n自分の一言：____________________",
+      "recording": "",
+      "done": false
+    }
+  },
+  "weeklyRotation": {
+    "mon": "asahi",
+    "tue": "nikkei",
+    "wed": "asahi",
+    "thu": "nikkei",
+    "fri": "asahi",
+    "sat": "nikkei",
+    "sun": "review"
+  },
+  "minutes": 0,
+  "done": false,
+  "source": "editorial-bundle-sync"
+}

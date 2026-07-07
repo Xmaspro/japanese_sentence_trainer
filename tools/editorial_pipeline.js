@@ -1,7 +1,19 @@
-const { fetchAsahiEditorialForDate, buildSpeakingExercises } = require("./asahi_editorial_fetcher.js");
+const { ensureSpeakingSteps, normalizeEditorialUrl } = require("./asahi_editorial_fetcher.js");
+const { fetchEditorialForDate, listEditorialsForDate, normalizeSource } = require("./editorial_sources.js");
 const { analyzeEditorial, DEFAULT_MODEL } = require("./editorial_analyzer.js");
 const { buildRetrievalContext, researchEditorialTopic } = require("./editorial_researcher.js");
-const { createEmptyBundle, listBundleDates, readBundle, writeBundle } = require("./editorial_store.js");
+const {
+  assignBundleFileName,
+  createEmptyBundle,
+  findBundleForRequest,
+  formatBundleRef,
+  listBundleDates,
+  listBundleSummariesForDate,
+  parsePublishDateKey,
+  readBundle,
+  shouldSyncLegacyFiles,
+  writeBundle,
+} = require("./editorial_store.js");
 const { syncLegacyFiles } = require("./editorial_sync.js");
 
 async function runEditorialDay(options = {}) {
@@ -10,24 +22,41 @@ async function runEditorialDay(options = {}) {
     throw new Error(`Invalid date: ${dateKey}`);
   }
 
-  const existing = readBundle(dateKey);
+  const source = normalizeSource(options.source);
+  const articleUrl = normalizeEditorialUrl(options.url);
+  const existing = findBundleForRequest({ date: dateKey, url: articleUrl });
+  const previousRef = existing ? { date: existing.date, id: existing.id } : null;
+
   if (existing?.meta?.status === "ready" && !options.forceFetch && !options.forceAnalyze) {
-    return { bundle: existing, cached: true, steps: ["cache"] };
+    if (existing.article?.paragraphs?.length) {
+      existing.speaking = ensureSpeakingSteps(existing.speaking, {
+        title: existing.source?.title || "",
+        paragraphs: existing.article.paragraphs,
+        dateKey: existing.date,
+        newspaperLabel: existing.source?.newspaperLabel || "",
+      });
+    }
+    return { bundle: existing, bundleRef: formatBundleRef(existing), cached: true, steps: ["cache"] };
   }
 
   const steps = [];
-  let bundle = existing || createEmptyBundle(dateKey);
+  const tentativePublishDate = existing?.date || dateKey;
+  let bundle = existing || createEmptyBundle(tentativePublishDate);
 
   if (!existing?.article?.paragraphs?.length || options.forceFetch) {
     steps.push("fetching");
-    const fetched = await fetchAsahiEditorialForDate({
+    const fetched = await fetchEditorialForDate({
+      source,
       date: dateKey,
+      url: articleUrl || undefined,
       dryRun: true,
     });
     const record = fetched.fetchedRecord;
+    const publishDate = parsePublishDateKey(record.publishedAt, dateKey);
+    bundle.date = publishDate;
     bundle.source = {
-      newspaper: "asahi",
-      newspaperLabel: "朝日新聞",
+      newspaper: record.source || source,
+      newspaperLabel: fetched.newspaperLabel,
       section: record.section,
       url: record.url,
       title: record.title,
@@ -39,19 +68,21 @@ async function runEditorialDay(options = {}) {
       fullText: record.fullText,
     };
     bundle.meta.fetchedAt = new Date().toISOString();
+    assignBundleFileName(bundle);
     steps.push("fetched");
   }
 
   if (!options.apiKey) {
     bundle.meta.status = "fetched";
     bundle.meta.analyzerVersion = 1;
-    writeBundle(bundle);
-    syncLegacyFiles(bundle);
+    writeBundle(bundle, { previousRef });
+    if (shouldSyncLegacyFiles(bundle, { manualUrl: Boolean(articleUrl) })) syncLegacyFiles(bundle);
     return {
       bundle,
+      bundleRef: formatBundleRef(bundle),
       cached: false,
       steps,
-      warning: "Missing OpenRouter API key. Article fetched; analysis skipped.",
+      warning: "Missing Gemini API key. Article fetched; analysis skipped.",
     };
   }
 
@@ -75,35 +106,45 @@ async function runEditorialDay(options = {}) {
   steps.push("researched");
 
   steps.push("analyzing");
-  const analysis = await analyzeEditorial(
+  const analysisResult = await analyzeEditorial(
     {
       title: bundle.source.title,
       url: bundle.source.url,
       paragraphs: bundle.article.paragraphs,
     },
     retrieval,
-    { apiKey: options.apiKey, model: options.model || DEFAULT_MODEL },
+    {
+      apiKey: options.apiKey,
+      model: options.model || DEFAULT_MODEL,
+      fallbackModels: options.fallbackModels,
+    },
   );
-  bundle.analysis = analysis;
-  bundle.researchMeta.skippedFacts = analysis.skippedFacts;
-  bundle.speaking = buildSpeakingExercises({
+  bundle.analysis = analysisResult.data;
+  bundle.researchMeta.skippedFacts = analysisResult.data.skippedFacts;
+  bundle.speaking = ensureSpeakingSteps(bundle.speaking, {
     title: bundle.source.title,
     paragraphs: bundle.article.paragraphs,
-    dateKey,
+    dateKey: bundle.date,
+    newspaperLabel: bundle.source.newspaperLabel,
   });
   bundle.meta.analyzedAt = new Date().toISOString();
-  bundle.meta.model = options.model || DEFAULT_MODEL;
+  bundle.meta.model = analysisResult.model || options.model || DEFAULT_MODEL;
+  bundle.meta.modelFallbackUsed = Boolean(analysisResult.fallbackUsed);
   bundle.meta.status = "ready";
   bundle.meta.analyzerVersion = 1;
+  assignBundleFileName(bundle);
   steps.push("ready");
 
-  writeBundle(bundle);
-  syncLegacyFiles(bundle);
-  return { bundle, cached: false, steps };
+  writeBundle(bundle, { previousRef });
+  if (shouldSyncLegacyFiles(bundle, { manualUrl: Boolean(articleUrl) })) syncLegacyFiles(bundle);
+  return { bundle, bundleRef: formatBundleRef(bundle), cached: false, steps };
 }
 
 module.exports = {
+  findBundleForRequest,
   listBundleDates,
+  listBundleSummariesForDate,
+  listEditorialsForDate,
   readBundle,
   runEditorialDay,
 };

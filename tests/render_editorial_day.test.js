@@ -26,11 +26,9 @@ test("renderEditorialHtml includes article, notes, and speaking tabs", () => {
     },
     speaking: {
       exercises: {
-        summary30s: { prompt: "何の話？", script: "下書き" },
-        desuMasuConversion: [{ originalFromEditorial: "姿だ。", spoken: "姿です。" }],
-        explainKeyword: { keyword: "お金の話", spokenExplanation: "説明" },
-        myOpinion: { script: "賛成" },
-        retellNextDay: { dueDate: "2026-07-07", script: "要点" },
+        flowTitle: "社论复述口语范本",
+        flowHint: "先朗读，再复述。",
+        script: "今日の朝日新聞の社説は、テストがテーマです。",
       },
     },
   });
@@ -39,6 +37,7 @@ test("renderEditorialHtml includes article, notes, and speaking tabs", () => {
   assert.match(html, /data-tab="article"/);
   assert.match(html, /data-tab="notes"/);
   assert.match(html, /data-tab="speaking"/);
+  assert.match(html, /社论复述口语范本/);
+  assert.match(html, /テストがテーマです/);
   assert.match(html, /共有地/);
-  assert.match(html, /姿です。/);
 });

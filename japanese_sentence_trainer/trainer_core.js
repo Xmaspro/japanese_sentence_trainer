@@ -303,6 +303,16 @@
     return settings?.speechVoice || "ja-JP-NanamiNeural";
   }
 
+  /** AI 对练默认 VOICEVOX：A=四国めたん(2)，B=ずんだもん(3)；可在语音配置里用数字 ID 覆盖 */
+  function getAiVoicevoxSpeakerId(settings, speakerChar) {
+    const side = speakerChar === "B" ? "B" : "A";
+    const configured = side === "B" ? settings?.speakerBVoice : settings?.speakerAVoice;
+    if (configured && /^\d+$/.test(String(configured).trim())) {
+      return String(configured).trim();
+    }
+    return side === "B" ? "3" : "2";
+  }
+
   function getTodayKey() {
     return formatDateKey(new Date());
   }
@@ -400,6 +410,7 @@
     getDialogueGroupsForCourse,
     getDialogueDisplayText,
     getSpeakerVoice,
+    getAiVoicevoxSpeakerId,
     summarizeCourseProgress,
     summarizeDialogueGroupProgress,
     getResumeIndexForCourse,

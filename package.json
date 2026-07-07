@@ -14,7 +14,10 @@
     "editorial:render": "node tools/render_editorial_day.js",
     "editorial:view": "node tools/open_editorial_view.js",
     "editorial:web": "node tools/serve_trainer_with_tts.js",
-    "editorial:github-sync": "node tools/sync_editorial_github.js --push"
+    "editorial:github-sync": "node tools/sync_editorial_github.js --push",
+    "editorial:scheduler": "node tools/editorial_scheduler.js",
+    "editorial:scheduler:run": "node tools/editorial_scheduler.js --run-now",
+    "editorial:scheduler:status": "node tools/editorial_scheduler.js --status"
   },
   "private": true
 }

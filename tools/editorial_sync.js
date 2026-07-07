@@ -53,7 +53,7 @@ function syncLegacyFiles(bundle) {
     title: bundle.source?.title || "",
     sourceUrl: bundle.source?.url || "",
     fetchedPath: `phase2_editorial_training/editorial_readings/fetched/${dateKey}.json`,
-    bundlePath: `phase2_editorial_training/bundles/${dateKey}.json`,
+    bundlePath: `phase2_editorial_training/bundles/${bundle.date || dateKey}/${bundle.id || "editorial"}.json`,
     extractedText: {
       ...readingExisting.extractedText,
       title: bundle.source?.title || "",

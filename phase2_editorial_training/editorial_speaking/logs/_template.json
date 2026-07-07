@@ -3,33 +3,11 @@
   "linkedReading": "phase2_editorial_training/editorial_readings/text/YYYY-MM-DD.json",
   "newspaper": "asahi",
   "exercises": {
-    "summary30s": {
-      "prompt": "何の話？新聞はどう言ってる？なぜ？",
-      "script": "",
-      "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/summary_30s.m4a",
-      "done": false
-    },
-    "desuMasuConversion": [
-      {
-        "originalFromEditorial": "",
-        "spoken": ""
-      }
-    ],
-    "myOpinion": {
-      "stance": "agree",
-      "script": "",
-      "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/opinion.m4a"
-    },
-    "explainKeyword": {
-      "keyword": "",
-      "spokenExplanation": ""
-    },
-    "retellNextDay": {
-      "dueDate": "",
-      "script": "",
-      "recording": "",
-      "done": false
-    }
+    "flowTitle": "社论复述口语范本",
+    "flowHint": "先大声朗读下面的です・ます范文，再合上正文用自己的话复述一遍。",
+    "script": "",
+    "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/retelling.m4a",
+    "done": false
   },
   "weeklyRotation": {
     "mon": "asahi",

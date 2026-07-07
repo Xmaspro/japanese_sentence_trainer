@@ -2,6 +2,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 
+const { readPrimaryBundleForDate } = require("./editorial_store.js");
+
 const ROOT = path.resolve(__dirname, "..");
 const GITHUB_SYNC = path.join(ROOT, "phase2_editorial_training", "github_sync");
 const BUNDLES = path.join(ROOT, "phase2_editorial_training", "bundles");
@@ -17,7 +19,9 @@ const CODE_PATHS = [
   "phase2_editorial_training/editorial_readings/text/_template.json",
   "phase2_editorial_training/editorial_speaking/logs/_template.json",
   "tools/asahi_editorial_fetcher.js",
+  "tools/gemini_client.js",
   "tools/editorial_analyzer.js",
+  "tests/gemini_client.test.js",
   "tools/editorial_pipeline.js",
   "tools/editorial_researcher.js",
   "tools/editorial_store.js",
@@ -54,7 +58,18 @@ function parseArgs(argv) {
 
 function listDateKeys() {
   const dates = new Set();
-  for (const dir of [BUNDLES, TEXT, LOGS, GITHUB_SYNC]) {
+  if (fs.existsSync(BUNDLES)) {
+    for (const name of fs.readdirSync(BUNDLES)) {
+      const fullPath = path.join(BUNDLES, name);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(name) && fs.statSync(fullPath).isDirectory()) {
+        dates.add(name);
+        continue;
+      }
+      const legacyMatch = name.match(/^(\d{4}-\d{2}-\d{2})\.json$/);
+      if (legacyMatch) dates.add(legacyMatch[1]);
+    }
+  }
+  for (const dir of [TEXT, LOGS, GITHUB_SYNC]) {
     if (!fs.existsSync(dir)) continue;
     for (const name of fs.readdirSync(dir)) {
       const match = name.match(/^(\d{4}-\d{2}-\d{2})\.json$/);
@@ -77,7 +92,10 @@ function isUserWrittenScript(script) {
 }
 
 function buildGithubSafeRecord(dateKey) {
-  const bundle = readJsonIfExists(path.join(BUNDLES, `${dateKey}.json`));
+  const bundle =
+    readPrimaryBundleForDate(dateKey) ||
+    readJsonIfExists(path.join(BUNDLES, dateKey, "editorial.json")) ||
+    readJsonIfExists(path.join(BUNDLES, `${dateKey}.json`));
   const text = readJsonIfExists(path.join(TEXT, `${dateKey}.json`));
   const logs = readJsonIfExists(path.join(LOGS, `${dateKey}.json`));
 
@@ -102,6 +120,14 @@ function buildGithubSafeRecord(dateKey) {
     }));
 
   const exercises = logs?.exercises || bundle?.speaking || {};
+  const legacyScript = exercises.script
+    || (exercises.steps || [])
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map((step) => step.script)
+      .filter(Boolean)
+      .join("\n\n")
+    || exercises.summary30s?.script
+    || "";
   return {
     date: dateKey,
     title: bundle?.source?.title || text?.title || "",
@@ -124,21 +150,10 @@ function buildGithubSafeRecord(dateKey) {
         }
       : undefined,
     speaking: {
-      summary30s: {
-        done: Boolean(exercises.summary30s?.done),
-        script: isUserWrittenScript(exercises.summary30s?.script) ? exercises.summary30s.script : "",
-      },
-      myOpinion: {
-        stance: exercises.myOpinion?.stance || "",
-        script: isUserWrittenScript(exercises.myOpinion?.script) ? exercises.myOpinion.script : "",
-      },
-      retellNextDay: {
-        dueDate: exercises.retellNextDay?.dueDate || "",
-        done: Boolean(exercises.retellNextDay?.done),
-        script: isUserWrittenScript(exercises.retellNextDay?.script) ? exercises.retellNextDay.script : "",
-      },
+      flowTitle: exercises.flowTitle || "",
+      done: Boolean(exercises.done || logs?.done),
+      script: isUserWrittenScript(legacyScript) ? legacyScript : "",
       minutes: logs?.minutes || 0,
-      done: Boolean(logs?.done),
     },
     policy: "GitHub-safe export: no article full text, no editorial sentence quotes",
   };
@@ -155,8 +170,7 @@ function writeGithubSyncExports() {
       record.reading.summaryJa ||
       record.reading.vocab.length ||
       record.grammar.length ||
-      record.speaking.summary30s.script ||
-      record.speaking.myOpinion.script;
+      record.speaking.script;
     if (!hasContent) continue;
     const out = path.join(GITHUB_SYNC, `${dateKey}.json`);
     fs.writeFileSync(out, `${JSON.stringify(record, null, 2)}\n`, "utf8");

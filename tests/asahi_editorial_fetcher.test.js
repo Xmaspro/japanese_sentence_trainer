@@ -6,12 +6,23 @@ const path = require("node:path");
 const {
   buildSpeakingExercises,
   convertToDesuMasu,
+  ensureSpeakingSteps,
+  normalizeEditorialUrl,
   parseAsahiEditorialArticle,
   parseAsahiEditorialList,
   pickListItemForDate,
 } = require("../tools/asahi_editorial_fetcher.js");
 
 const FIXTURES = path.join(__dirname, "fixtures");
+
+test("normalizeEditorialUrl accepts http(s) links and rejects invalid values", () => {
+  assert.equal(
+    normalizeEditorialUrl("https://www.asahi.com/articles/DA3S16496827.html"),
+    "https://www.asahi.com/articles/DA3S16496827.html",
+  );
+  assert.throws(() => normalizeEditorialUrl("not-a-url"), /无效的 URL/);
+  assert.throws(() => normalizeEditorialUrl("ftp://example.com"), /http/);
+});
 
 test("parseAsahiEditorialList extracts title, lead, url, and date", () => {
   const html = fs.readFileSync(path.join(FIXTURES, "asahi_editorial_list.snippet.html"), "utf8");
@@ -54,7 +65,7 @@ test("convertToDesuMasu handles common editorial endings", () => {
   );
 });
 
-test("buildSpeakingExercises creates summary, conversion, and keyword drills", () => {
+test("buildSpeakingExercises creates a single retelling script", () => {
   const html = fs.readFileSync(path.join(FIXTURES, "asahi_editorial_article.snippet.html"), "utf8");
   const article = parseAsahiEditorialArticle(html);
   const exercises = buildSpeakingExercises({
@@ -63,8 +74,33 @@ test("buildSpeakingExercises creates summary, conversion, and keyword drills", (
     dateKey: "2026-07-06",
   });
 
-  assert.match(exercises.summary30s.script, /社会保障の給付/);
-  assert.ok(exercises.desuMasuConversion.length >= 2);
-  assert.equal(exercises.explainKeyword.keyword, "お金の話");
-  assert.equal(exercises.retellNextDay.dueDate, "2026-07-07");
+  assert.equal(exercises.flowTitle, "社论复述口语范本");
+  assert.match(exercises.script, /【社论复述口语范本】/);
+  assert.match(exercises.script, /今日の朝日新聞の社説は/);
+  assert.match(exercises.script, /社会保障の給付/);
+  assert.match(exercises.script, /朝日新聞の立場をまとめると/);
+  assert.equal(
+    exercises.recording,
+    "phase2_editorial_training/editorial_speaking/recordings/2026-07-06/retelling.m4a",
+  );
+});
+
+test("ensureSpeakingSteps keeps user script and migrates legacy speaking", () => {
+  const html = fs.readFileSync(path.join(FIXTURES, "asahi_editorial_article.snippet.html"), "utf8");
+  const article = parseAsahiEditorialArticle(html);
+  const context = {
+    title: article.title,
+    paragraphs: article.paragraphs,
+    dateKey: "2026-07-06",
+  };
+
+  const kept = ensureSpeakingSteps({ script: "自分で書いた复述" }, context);
+  assert.equal(kept.script, "自分で書いた复述");
+
+  const migrated = ensureSpeakingSteps(
+    { summary30s: { prompt: "何の話？", script: "旧缓存" } },
+    context,
+  );
+  assert.equal(migrated.script, "旧缓存");
+  assert.equal(migrated.flowTitle, "社论复述口语范本");
 });

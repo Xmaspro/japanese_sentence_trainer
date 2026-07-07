@@ -52,19 +52,20 @@ function renderVocab(vocab) {
     .join("")}</ul>`;
 }
 
-function renderDesuMasu(items) {
-  const rows = (items || []).filter((item) => item.originalFromEditorial);
-  if (!rows.length) return '<p class="empty">暂无练习句。</p>';
-  return `<div class="conversion-list">${rows
-    .map(
-      (item, index) => `<article class="conversion-card">
-        <div class="label">第 ${index + 1} 句 · 社说体</div>
-        <p>${escapeHtml(item.originalFromEditorial)}</p>
-        <div class="label">です・ます</div>
-        <p class="spoken">${escapeHtml(item.spoken || "（大声说出来）")}</p>
-      </article>`,
-    )
-    .join("")}</div>`;
+function renderSpeakingScript(exercises) {
+  const script = exercises?.script || "";
+  if (!script && exercises?.steps?.length) {
+    const combined = exercises.steps
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map((step) => step.script)
+      .filter(Boolean)
+      .join("\n\n");
+    if (combined) {
+      return `<article class="speaking-script-card"><pre class="script">${escapeHtml(combined)}</pre></article>`;
+    }
+  }
+  if (!script) return '<p class="empty">口语范本尚未生成。</p>';
+  return `<article class="speaking-script-card"><pre class="script">${escapeHtml(script)}</pre></article>`;
 }
 
 function renderEditorialHtml({ dateKey, fetched, reading, speaking }) {
@@ -179,18 +180,9 @@ function renderEditorialHtml({ dateKey, fetched, reading, speaking }) {
     </section>
 
     <section class="panel" id="speaking" role="tabpanel">
-      <h2>口语练习</h2>
-      <h3>30 秒要約</h3>
-      <div class="prompt">${escapeHtml(exercises.summary30s?.prompt || "")}</div>
-      <pre class="script">${escapeHtml(exercises.summary30s?.script || "")}</pre>
-      <h3>です・ます转换</h3>
-      ${renderDesuMasu(exercises.desuMasuConversion)}
-      <h3>关键词说明</h3>
-      <div class="note-card"><div class="label">${escapeHtml(exercises.explainKeyword?.keyword || "")}</div><pre class="script">${escapeHtml(exercises.explainKeyword?.spokenExplanation || "")}</pre></div>
-      <h3>我的观点</h3>
-      <pre class="script">${escapeHtml(exercises.myOpinion?.script || "")}</pre>
-      <h3>隔天复述 · ${escapeHtml(exercises.retellNextDay?.dueDate || "")}</h3>
-      <pre class="script">${escapeHtml(exercises.retellNextDay?.script || "")}</pre>
+      <h2>${escapeHtml(exercises.flowTitle || "社论复述口语范本")}</h2>
+      <p class="muted">${escapeHtml(exercises.flowHint || "先大声朗读下面的です・ます范文，再合上正文用自己的话复述一遍。")}</p>
+      ${renderSpeakingScript(exercises)}
     </section>
   </div>
   <script>

@@ -21,6 +21,21 @@ function parseArgs(argv) {
   return options;
 }
 
+function normalizeEditorialUrl(url) {
+  const raw = String(url || "").trim();
+  if (!raw) return "";
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error(`无效的 URL：${raw}`);
+  }
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("URL 须以 http:// 或 https:// 开头");
+  }
+  return parsed.toString();
+}
+
 function todayKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -301,42 +316,112 @@ function buildOpinionScaffold(title) {
   ].join("\n");
 }
 
-function buildSpeakingExercises({ title, paragraphs, dateKey }) {
-  const quotes = extractQuotedTerms(paragraphs.join("\n"));
-  const keyword = quotes[0] || cleanEditorialTitle(title).split("　")[0] || "";
+function firstSentence(text) {
+  return String(text || "")
+    .split("。")
+    .map((part) => part.trim())
+    .find(Boolean);
+}
+
+function excerptToSpoken(text, maxSentences = 2) {
+  const sentences = String(text || "")
+    .split(/(?<=。)/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, maxSentences);
+  return sentences.map((sentence) => {
+    const normalized = sentence.endsWith("。") ? sentence : `${sentence}。`;
+    const spoken = convertToDesuMasu(normalized);
+    return spoken || normalized;
+  });
+}
+
+function isPlaceholderSpeakingScript(script) {
+  const text = String(script || "").trim();
+  if (!text) return true;
+  return /_{3,}|________________|下書き/.test(text);
+}
+
+function buildRetellingScript({ title, paragraphs, newspaperLabel = "朝日新聞" }) {
+  const paper = String(newspaperLabel || "朝日新聞").trim() || "朝日新聞";
+  const topic = cleanEditorialTitle(title);
+  const leadLines = excerptToSpoken(paragraphs[0] || "", 2);
+  const bodyLines = paragraphs
+    .slice(1, -1)
+    .flatMap((paragraph) => excerptToSpoken(paragraph, 1))
+    .slice(0, 4);
+  const closeLines = excerptToSpoken(paragraphs[paragraphs.length - 1] || "", 2);
+
+  const lines = [
+    "【社论复述口语范本】",
+    "（です・ます体 · 先大声朗读，再合上正文自己复述）",
+    "",
+    `今日の${paper}の社説は、「${topic}」がテーマです。`,
+    ...leadLines,
+  ];
+
+  if (bodyLines.length) {
+    lines.push("", "この社説では、次の点が指摘されています。");
+    bodyLines.forEach((line, index) => {
+      lines.push(index === 0 ? line : `また、${line}`);
+    });
+  }
+
+  if (closeLines.length) {
+    lines.push("", `${paper}の立場をまとめると、`);
+    closeLines.forEach((line, index) => {
+      lines.push(index === 0 ? line : `そして、${line}`);
+    });
+  }
+
+  return lines.join("\n");
+}
+
+function legacySpeakingScript(speaking = {}) {
+  if (speaking.script && !isPlaceholderSpeakingScript(speaking.script)) {
+    return speaking.script;
+  }
+  if (speaking.steps?.length) {
+    const combined = speaking.steps
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map((step) => step.script)
+      .filter(Boolean)
+      .join("\n\n");
+    if (combined && !isPlaceholderSpeakingScript(combined)) return combined;
+  }
+  if (speaking.summary30s?.script && !isPlaceholderSpeakingScript(speaking.summary30s.script)) {
+    return speaking.summary30s.script;
+  }
+  return "";
+}
+
+function ensureSpeakingSteps(speaking, { title, paragraphs, dateKey, newspaperLabel }) {
+  const fresh = buildSpeakingExercises({ title, paragraphs, dateKey, newspaperLabel });
+  if (!speaking) return fresh;
+
+  const previousScript = legacySpeakingScript(speaking);
+  const keepPreviousScript = previousScript && !isPlaceholderSpeakingScript(previousScript);
+
   return {
-    summary30s: {
-      prompt: "何の話？新聞はどう言ってる？なぜ？",
-      script: buildSummaryScaffold(title, paragraphs),
-      recording: `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/summary_30s.m4a`,
-      done: false,
-    },
-    desuMasuConversion: pickDesuMasuCandidates(paragraphs),
-    myOpinion: {
-      stance: "undecided",
-      script: buildOpinionScaffold(title),
-      recording: `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/opinion.m4a`,
-    },
-    explainKeyword: {
-      keyword,
-      spokenExplanation: buildKeywordScaffold(keyword, paragraphs),
-    },
-    retellNextDay: {
-      dueDate: addDays(dateKey, 1),
-      script: [
-        "【翌日リテル・見出しなしで】",
-        `昨日の社説は「${cleanEditorialTitle(title)}」でした。`,
-        "要点：____________________",
-        "新聞の立場：____________________",
-        "自分の一言：____________________",
-      ].join("\n"),
-      recording: "",
-      done: false,
-    },
+    flowTitle: fresh.flowTitle,
+    flowHint: fresh.flowHint,
+    script: keepPreviousScript ? previousScript : fresh.script,
+    recording: speaking.recording || fresh.recording,
+    done: speaking.done ?? speaking.summary30s?.done ?? false,
   };
 }
 
-function buildFetchedRecord({ listItem, article, dateKey }) {
+function buildSpeakingExercises({ title, paragraphs, dateKey, newspaperLabel }) {
+  return {
+    flowTitle: "社论复述口语范本",
+    flowHint: "先大声朗读下面的です・ます范文，再合上正文用自己的话复述一遍。",
+    script: buildRetellingScript({ title, paragraphs, newspaperLabel }),
+    recording: `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/retelling.m4a`,
+    done: false,
+  };
+}
+
+function buildFetchedRecord({ listItem, article, dateKey, articleUrl = "" }) {
   const paragraphs = prependLeadParagraph(article.paragraphs, listItem?.lead || article.lead);
   const fullText = paragraphs.join("\n\n");
   return {
@@ -344,7 +429,7 @@ function buildFetchedRecord({ listItem, article, dateKey }) {
     source: "asahi",
     section: "社説",
     title: article.title || listItem?.title || "",
-    url: article.url || listItem?.url || "",
+    url: article.url || listItem?.url || articleUrl || "",
     publishedAt: article.publishedAt || listItem?.publishedAt || "",
     fetchedAt: new Date().toISOString(),
     lead: paragraphs[0] || listItem?.lead || "",
@@ -414,32 +499,13 @@ function mergeReading(existing, patch) {
   };
 }
 
-function mergeSpeaking(existing, generatedExercises, dateKey) {
+function mergeSpeaking(existing, { title, paragraphs, dateKey }) {
   return {
     ...existing,
     date: dateKey,
     linkedReading: `phase2_editorial_training/editorial_readings/text/${dateKey}.json`,
     source: "asahi-editorial-fetch",
-    exercises: {
-      ...existing.exercises,
-      ...generatedExercises,
-      summary30s: {
-        ...existing.exercises?.summary30s,
-        ...generatedExercises.summary30s,
-      },
-      myOpinion: {
-        ...existing.exercises?.myOpinion,
-        ...generatedExercises.myOpinion,
-      },
-      explainKeyword: {
-        ...existing.exercises?.explainKeyword,
-        ...generatedExercises.explainKeyword,
-      },
-      retellNextDay: {
-        ...existing.exercises?.retellNextDay,
-        ...generatedExercises.retellNextDay,
-      },
-    },
+    exercises: ensureSpeakingSteps(existing.exercises, { title, paragraphs, dateKey }),
   };
 }
 
@@ -459,14 +525,17 @@ async function fetchAsahiEditorialForDate(options = {}) {
     }
   }
 
-  const articleUrl = options.url || listItem.url;
+  const articleUrl = normalizeEditorialUrl(options.url || listItem?.url || "");
+  if (!articleUrl) {
+    throw new Error("Missing article URL");
+  }
   const articleHtml = await fetchText(articleUrl);
   const article = parseAsahiEditorialArticle(articleHtml);
   if (!article.paragraphs.length) {
     throw new Error(`No article paragraphs extracted from ${articleUrl}`);
   }
 
-  const fetchedRecord = buildFetchedRecord({ listItem, article, dateKey });
+  const fetchedRecord = buildFetchedRecord({ listItem, article, dateKey, articleUrl });
   const readingPatch = buildReadingPatch(fetchedRecord);
   const speakingExercises = buildSpeakingExercises({
     title: fetchedRecord.title,
@@ -500,7 +569,14 @@ async function fetchAsahiEditorialForDate(options = {}) {
   const speakingExisting = fs.existsSync(speakingFile)
     ? JSON.parse(fs.readFileSync(speakingFile, "utf8"))
     : JSON.parse(fs.readFileSync(path.join(SPEAKING_LOGS, "_template.json"), "utf8"));
-  writeJson(speakingFile, mergeSpeaking(speakingExisting, speakingExercises, dateKey));
+  writeJson(
+    speakingFile,
+    mergeSpeaking(speakingExisting, {
+      title: fetchedRecord.title,
+      paragraphs: fetchedRecord.paragraphs,
+      dateKey,
+    }),
+  );
 
   const rendered = renderEditorialDay({ date: dateKey });
   result.paths.view = rendered.outPath;
@@ -532,10 +608,13 @@ module.exports = {
   addDays,
   buildFetchedRecord,
   buildReadingPatch,
+  buildRetellingScript,
   buildSpeakingExercises,
+  ensureSpeakingSteps,
   cleanEditorialTitle,
   convertToDesuMasu,
   fetchAsahiEditorialForDate,
+  normalizeEditorialUrl,
   parseAsahiEditorialArticle,
   parseAsahiEditorialList,
   pickDesuMasuCandidates,

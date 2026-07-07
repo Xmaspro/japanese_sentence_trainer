@@ -66,23 +66,18 @@ function showDay(options = {}) {
   if (speaking) {
     const exercises = speaking.exercises || {};
     console.log("[3] logs/  → 口语练习（可 git）");
-    console.log("    用法: 按 exercises 顺序练，录到 recordings/ 对应路径");
+    console.log("    用法: 朗读复述范本，录到 recordings/ 对应路径");
     console.log(`    文件: phase2_editorial_training/editorial_speaking/logs/${dateKey}.json`);
     console.log("");
-    console.log("    a) summary30s");
-    console.log(`       prompt: ${exercises.summary30s?.prompt || ""}`);
-    console.log(`       script: ${(exercises.summary30s?.script || "").split("\n")[0]} ...`);
-    console.log(`       录音  : ${exercises.summary30s?.recording || ""}`);
-    console.log("");
-    console.log(`    b) desuMasuConversion (${(exercises.desuMasuConversion || []).length} 句)`);
-    for (const [index, item] of (exercises.desuMasuConversion || []).slice(0, 2).entries()) {
-      console.log(`       ${index + 1}. ${item.originalFromEditorial}`);
-      console.log(`          → ${item.spoken}`);
+    const script = exercises.script || "";
+    if (script) {
+      const preview = script.split("\n").slice(0, 3).join(" / ");
+      console.log(`    ${exercises.flowTitle || "社论复述口语范本"}`);
+      console.log(`    ${preview}${script.includes("\n") ? " …" : ""}`);
+      if (exercises.recording) console.log(`    录音: ${exercises.recording}`);
+    } else {
+      console.log("    （口语范本尚未生成，请重新运行 editorial pipeline）");
     }
-    console.log("");
-    console.log(`    c) explainKeyword: ${exercises.explainKeyword?.keyword || ""}`);
-    console.log(`    d) myOpinion`);
-    console.log(`    e) retellNextDay due: ${exercises.retellNextDay?.dueDate || ""}`);
   }
 }
 

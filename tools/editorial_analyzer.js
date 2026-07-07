@@ -1,4 +1,4 @@
-const DEFAULT_MODEL = "openrouter/owl-alpha";
+const { DEFAULT_GEMINI_MODEL, generateGeminiContentWithFallback } = require("./gemini_client.js");
 
 function buildAnalysisPrompt(article, retrieval) {
   return `你是日语 N1 社说教练。请基于下列材料输出严格 JSON（不要 markdown 代码块）。
@@ -34,28 +34,6 @@ ${retrieval.textBlock}
   },
   "skippedFacts": ["string"]
 }`;
-}
-
-async function callOpenRouter(apiKey, model, prompt) {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://127.0.0.1:5177",
-      "X-Title": "Japanese Sentence Trainer Editorial",
-    },
-    body: JSON.stringify({
-      model: model || DEFAULT_MODEL,
-      temperature: 0.2,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (!response.ok) {
-    throw new Error(`OpenRouter ${response.status}: ${await response.text()}`);
-  }
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
 }
 
 function extractJsonObject(text) {
@@ -120,13 +98,24 @@ function verifyAnalysisOutput(parsed, article, webSources) {
 
 async function analyzeEditorial(article, retrieval, options = {}) {
   const prompt = buildAnalysisPrompt(article, retrieval);
-  const content = await callOpenRouter(options.apiKey, options.model, prompt);
-  const parsed = extractJsonObject(content);
-  return verifyAnalysisOutput(parsed, article, retrieval.webSources || []);
+  const result = await generateGeminiContentWithFallback({
+    apiKey: options.apiKey,
+    model: options.model || DEFAULT_GEMINI_MODEL,
+    fallbackModels: options.fallbackModels,
+    prompt,
+    jsonMode: true,
+    temperature: 0.2,
+  });
+  const parsed = extractJsonObject(result.text);
+  return {
+    data: verifyAnalysisOutput(parsed, article, retrieval.webSources || []),
+    model: result.model,
+    fallbackUsed: Boolean(result.fallbackUsed),
+  };
 }
 
 module.exports = {
-  DEFAULT_MODEL,
+  DEFAULT_MODEL: DEFAULT_GEMINI_MODEL,
   analyzeEditorial,
   buildAnalysisPrompt,
   extractJsonObject,

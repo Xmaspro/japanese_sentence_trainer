@@ -32,6 +32,12 @@ const {
   getSpeechObjectUrl: getCachedSpeechObjectUrl,
   trimSpeechBlobCache: trimCachedSpeechBlobCache,
 } = window.JapaneseSentenceTrainerSpeechCache;
+const {
+  checkVoicevoxEngine,
+  fetchVoicevoxBlob,
+  resolveAiSpeakerId,
+  DEFAULT_ENGINE_URL,
+} = window.JapaneseSentenceTrainerVoicevoxClient;
 
 const modeLabels = {
   dictation: ["听写", "听到的日语"],
@@ -55,12 +61,27 @@ const defaultSettings = {
   speakerAVoice: "ja-JP-NanamiNeural",
   speakerBVoice: "ja-JP-KeitaNeural",
   geminiKey: "",
-  geminiModel: "openrouter/owl-alpha",
+  geminiModel: "gemini-2.0-flash",
+  voicevoxEngineUrl: DEFAULT_ENGINE_URL,
   vnMode: true,
   bgProvider: "pollinations",
   siliconKey: "",
   siliconModel: "black-forest-labs/FLUX.1-schnell",
 };
+
+async function readApiJson(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    const preview = text.trim().slice(0, 240);
+    if (/OpenRouter/i.test(preview)) {
+      throw new Error("服务端仍是旧版 OpenRouter 接口。请停止当前 npm start，重新运行 npm start，并改用 Gemini API Key。");
+    }
+    throw new Error(preview || `HTTP ${response.status}`);
+  }
+}
 
 const state = {
   module: "life",
@@ -91,9 +112,11 @@ const state = {
   aiChatActive: false,
   aiChatHistory: [],
   aiMission: { character: "", goal: "", checkpoints: [], completed: [], active: false },
+  aiSceneDialogue: null,
+  scenePresets: [],
 };
 
-if (!state.settings.geminiModel || state.settings.geminiModel === "gemini-1.5-flash") {
+if (!state.settings.geminiModel || state.settings.geminiModel.startsWith("openrouter/") || state.settings.geminiModel === "gemini-1.5-flash") {
   state.settings.geminiModel = defaultSettings.geminiModel;
 }
 
@@ -157,6 +180,7 @@ const els = {
   vnNextBtn: document.querySelector("#vnNextBtn"),
   vnNextGroupBtn: document.querySelector("#vnNextGroupBtn"),
   vnAiSetupModal: document.querySelector("#vnAiSetupModal"),
+  vnAiPresetGrid: document.querySelector("#vnAiPresetGrid"),
   vnAiUseCurrentBtn: document.querySelector("#vnAiUseCurrentBtn"),
   vnAiCustomInput: document.querySelector("#vnAiCustomInput"),
   vnAiStartCustomBtn: document.querySelector("#vnAiStartCustomBtn"),
@@ -763,24 +787,20 @@ async function fetchGroupTranslation(dialogueId, currentDialogue) {
 对话内容：
 ${JSON.stringify(lines, null, 2)}`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("/api/gemini-generate", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${key}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": location.origin,
-        "X-Title": "Japanese Sentence Trainer",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        key,
         model,
-        messages: [{ role: "user", content: promptText }],
-        response_format: { type: "json_object" },
+        prompt: promptText,
+        jsonMode: true,
       }),
     });
 
-    if (!response.ok) throw new Error(`OpenRouter translation failed: ${response.status}`);
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "";
+    if (!response.ok) throw new Error(`Gemini translation failed: ${response.status}`);
+    const data = await readApiJson(response);
+    const text = data.text || data.error || "";
     
     let cleanText = text.trim();
     if (cleanText.startsWith("```")) {
@@ -789,7 +809,7 @@ ${JSON.stringify(lines, null, 2)}`;
     const translations = JSON.parse(cleanText.trim());
     return translations;
   } catch (error) {
-    console.error("OpenRouter translation error:", error);
+    console.error("Gemini translation error:", error);
     return null;
   }
 }
@@ -842,14 +862,13 @@ function renderGroupTranslation() {
     container.innerHTML = `
       <div style="font-size: 13px; color: var(--muted); padding: 12px 8px; line-height: 1.6; text-align: center;">
         <span style="display: block; margin-bottom: 6px; font-weight: bold; color: var(--green);">💡 智能翻译说明</span>
-        本对话暂无翻译。请在左侧配置并保存 <strong>OpenRouter API Key</strong>，系统将自动通过 AI 翻译该组对话。
+        本对话暂无翻译。请在左侧配置并保存 <strong>Gemini API Key</strong>，系统将自动通过 AI 翻译该组对话。
       </div>
     `;
     return;
   }
 
-  // If we have an OpenRouter key, show a loading status and trigger fetch.
-  container.innerHTML = `<div class="chat-empty" style="font-size: 13.5px; color: var(--muted); text-align: center; padding: 16px;">正在通过 OpenRouter AI 翻译对话，请稍候...</div>`;
+  container.innerHTML = `<div class="chat-empty" style="font-size: 13.5px; color: var(--muted); text-align: center; padding: 16px;">正在通过 Gemini 翻译对话，请稍候...</div>`;
 
   if (activeTranslationFetchId !== dialogueId) {
     activeTranslationFetchId = dialogueId;
@@ -1163,28 +1182,35 @@ function trimSpeechBlobCache(maxItems = 80) {
   trimCachedSpeechBlobCache(state.speechBlobCache, maxItems);
 }
 
+function getAiVoicevoxEngineUrl() {
+  return String(state.settings.voicevoxEngineUrl || DEFAULT_ENGINE_URL).trim() || DEFAULT_ENGINE_URL;
+}
+
+async function fetchAiVoicevoxBlob(text, speakerChar = "B") {
+  const cleanedText = cleanTextForTts(text);
+  if (!cleanedText) throw new Error("VOICEVOX: empty text");
+  const speakerId = resolveAiSpeakerId(state.settings, speakerChar);
+  return fetchVoicevoxBlob(cleanedText, speakerId, { engineUrl: getAiVoicevoxEngineUrl() });
+}
+
 async function prefetchAiSpeech(text, speakerChar = "B") {
   const cleanedText = cleanTextForTts(text);
   if (!cleanedText) return;
   try {
-    if (state.settings.voiceProvider === "voicevox") {
-      const selectedVoice = getSpeakerVoice(state.settings, speakerChar);
-      let speakerId = speakerChar === "B" ? "3" : "2";
-      if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) speakerId = String(selectedVoice).trim();
-      await getSpeechObjectUrl("voicevox", cleanedText, speakerId, async () => {
-        const response = await fetch("/api/voicevox-tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: cleanedText, speaker: speakerId }),
-        });
-        if (!response.ok) throw new Error(`VOICEVOX prefetch failed: ${response.status}`);
-        return response.blob();
-      });
-    } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
-      await getMicrosoftSpeechObjectUrl(cleanedText, getSpeakerVoice(state.settings, speakerChar));
-    }
+    const speakerId = resolveAiSpeakerId(state.settings, speakerChar);
+    await getSpeechObjectUrl("voicevox-ai", cleanedText, `${speakerId}`, async () =>
+      fetchAiVoicevoxBlob(cleanedText, speakerChar),
+    );
   } catch {
-    // Prefetch is an optimization; playback can still fall back later.
+    // Prefetch is best-effort.
+  }
+}
+
+async function prefetchAiSceneDialogueSpeech(sceneDialogue) {
+  for (const line of sceneDialogue?.utterances || []) {
+    if (!line?.ja) continue;
+    const speakerChar = line.speaker === "A" ? "A" : "B";
+    await prefetchAiSpeech(line.ja, speakerChar);
   }
 }
 
@@ -1298,7 +1324,7 @@ function saveGeminiSettings() {
     geminiModel: els.geminiModel.value.trim() || defaultSettings.geminiModel,
   };
   saveJson(storageKeys.settings, state.settings);
-  els.geminiStatus.textContent = state.settings.geminiKey ? "OpenRouter 配置已保存到本机浏览器。" : "未填写 OpenRouter API Key。";
+  els.geminiStatus.textContent = state.settings.geminiKey ? "Gemini 配置已保存到本机浏览器。" : "未填写 Gemini API Key。";
 }
 
 function saveBgSettings() {
@@ -1317,8 +1343,8 @@ async function refreshGeminiExplanation() {
   const sentence = currentSentence();
   if (!sentence) return;
   if (!state.settings.geminiKey) {
-    els.geminiStatus.textContent = "请先填写并保存 OpenRouter API Key。";
-    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">请先在左侧“OpenRouter 配置”中填写并保存您的 API Key。</div>`;
+    els.geminiStatus.textContent = "请先填写并保存 Gemini API Key。";
+    els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">请先在左侧“Gemini 配置”中填写并保存您的 API Key。</div>`;
     return;
   }
 
@@ -1336,8 +1362,8 @@ async function refreshGeminiExplanation() {
     els.geminiStatus.textContent = "讲解已生成并缓存。";
   } catch (error) {
     if (currentSentence()?.id === sentence.id) {
-      els.geminiStatus.textContent = "OpenRouter 讲解失败，请检查 API Key、模型名称或本地服务。";
-      els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">OpenRouter 讲解生成失败。请检查您的 API Key、模型名称是否有效，或本地 Node 服务是否正常运行。</div>`;
+      els.geminiStatus.textContent = "Gemini 讲解失败，请检查 API Key、模型名称或本地服务。";
+      els.explainList.innerHTML = `<div class="explain-item" style="color: var(--coral); padding: 16px; border-radius: 12px; line-height: 1.6;">Gemini 讲解生成失败。请检查您的 API Key、模型名称是否有效，或本地 Node 服务是否正常运行。</div>`;
     }
   } finally {
     if (state.fetchingExplanationSentenceId === sentence.id) {
@@ -1367,42 +1393,14 @@ async function requestGeminiExplanation(sentence) {
       particleAnswer: sentence.particleAnswer || [],
     },
   };
-  let response = await fetch("/api/gemini-explain", {
+  const response = await fetch("/api/gemini-explain", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (response.status === 404 || response.status === 405) {
-    response = await fetchGeminiDirect(payload);
-  }
-  if (!response.ok) throw new Error(`OpenRouter failed: ${response.status}`);
-  const data = await response.json();
-  return data.explanation || data.text || data.choices?.[0]?.message?.content || data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
-}
-
-async function fetchGeminiDirect(payload) {
-  return fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${payload.key}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": location.origin,
-      "X-Title": "Japanese Sentence Trainer",
-    },
-    body: JSON.stringify(buildGeminiRequestBody(payload.sentence, payload.model)),
-  });
-}
-
-function buildGeminiRequestBody(sentence, model = defaultSettings.geminiModel) {
-  return {
-    model,
-    messages: [
-      {
-        role: "user",
-        content: `请用中文说明下面日语对话组的场景、文法、词汇，固定输出三段：场景说明、核心文法、重点词汇。重点解释学习者容易误解的词和文法，不要泛泛聊天。不要超过400字。\n${formatDialogueForGemini(sentence)}`,
-      },
-    ],
-  };
+  if (!response.ok) throw new Error(`Gemini failed: ${response.status}`);
+  const data = await readApiJson(response);
+  return data.explanation || data.text || data.error || "";
 }
 
 function formatDialogueForGemini(sentence) {
@@ -1731,8 +1729,8 @@ els.vnNextBtn.addEventListener("click", nextSentence);
 els.vnNextGroupBtn.addEventListener("click", nextGroup);
 els.vnAiChatBtn.addEventListener("click", handleAiSetupOrToggle);
 els.vnAiSetupCloseBtn.addEventListener("click", closeAiChatSetup);
-els.vnAiUseCurrentBtn.addEventListener("click", () => startCustomAiChat(""));
-els.vnAiStartCustomBtn.addEventListener("click", () => startCustomAiChat(els.vnAiCustomInput.value));
+els.vnAiUseCurrentBtn.addEventListener("click", () => startCustomAiChat({}));
+els.vnAiStartCustomBtn.addEventListener("click", () => startCustomAiChat({ sceneDescription: els.vnAiCustomInput.value }));
 els.vnAiSendBtn.addEventListener("click", sendAiChatMessage);
 els.vnAiTextInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") sendAiChatMessage();
@@ -1852,52 +1850,112 @@ function makeCharacterDraggable(el) {
 
 async function playAiCharacterSpeech(text, speakerChar) {
   stopCurrentSpeech();
-  
-  if (state.settings.voiceProvider === "voicevox") {
-    try {
-      const selectedVoice = getSpeakerVoice(state.settings, speakerChar);
-      let speakerId = speakerChar === "B" ? "3" : "2";
-      if (selectedVoice && /^\d+$/.test(String(selectedVoice).trim())) {
-        speakerId = String(selectedVoice).trim();
-      }
-      const audio = await playVoicevoxSpeech(text, speakerId);
-      animateVnSpeaker(speakerChar, audio);
-      return audio;
-    } catch (error) {
-      els.voiceStatus.textContent = "VOICEVOX 语音失败，已回退到浏览器语音。";
-    }
-  } else if (state.settings.voiceProvider === "microsoft" && state.settings.speechKey) {
-    try {
-      const audio = await playMicrosoftSpeech(text, getSpeakerVoice(state.settings, speakerChar));
-      animateVnSpeaker(speakerChar, audio);
-      return audio;
-    } catch (error) {
-      els.voiceStatus.textContent = "微软语音失败，已回退到浏览器语音。";
-    }
-  }
+  const cleanedText = cleanTextForTts(text);
+  if (!cleanedText) return null;
 
-  const utterance = playBrowserSpeech(text);
-  if (utterance) {
-    utterance.onstart = () => animateVnSpeaker(speakerChar, null);
-    utterance.onend = () => animateVnSpeaker(null, null);
-    utterance.onerror = () => animateVnSpeaker(null, null);
+  const speakerId = resolveAiSpeakerId(state.settings, speakerChar);
+  try {
+    const audio = new Audio(
+      await getSpeechObjectUrl("voicevox-ai", cleanedText, `${speakerId}`, async () =>
+        fetchAiVoicevoxBlob(cleanedText, speakerChar),
+      ),
+    );
+    state.currentAudio = audio;
+    audio.addEventListener(
+      "ended",
+      () => {
+        if (state.currentAudio === audio) state.currentAudio = null;
+      },
+      { once: true },
+    );
+    await audio.play();
+    els.voiceStatus.textContent = `AI 对白 · VOICEVOX Speaker ${speakerId}`;
+    animateVnSpeaker(speakerChar, audio);
+    return audio;
+  } catch (error) {
+    const message = String(error?.message || error || "unknown");
+    els.voiceStatus.textContent = `AI 对白 VOICEVOX 失败：${message}`;
+    console.error("AI VOICEVOX playback failed:", error);
+    return null;
   }
-  return null;
 }
 
-function openAiChatSetup() {
+async function loadScenePresets() {
+  if (state.scenePresets.length) return state.scenePresets;
+  try {
+    const response = await fetch("/api/scene-presets");
+    if (!response.ok) return [];
+    const data = await readApiJson(response);
+    state.scenePresets = Array.isArray(data.presets) ? data.presets : [];
+  } catch {
+    state.scenePresets = [];
+  }
+  return state.scenePresets;
+}
+
+function renderScenePresetGrid() {
+  if (!els.vnAiPresetGrid) return;
+  const presets = state.scenePresets;
+  if (!presets.length) {
+    els.vnAiPresetGrid.innerHTML = `<p class="scene-preset-empty">典型场景列表加载中…</p>`;
+    return;
+  }
+
+  els.vnAiPresetGrid.innerHTML = presets
+    .map(
+      (preset) => `
+        <button
+          type="button"
+          class="scene-preset-btn"
+          data-preset-id="${escapeHtml(preset.id)}"
+          title="${escapeHtml(preset.description || preset.label)}"
+        >
+          <span class="preset-icon">${escapeHtml(preset.icon || "🗣️")}</span>
+          <span>${escapeHtml(preset.label)}</span>
+        </button>
+      `,
+    )
+    .join("");
+
+  els.vnAiPresetGrid.querySelectorAll(".scene-preset-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const presetId = button.dataset.presetId;
+      startCustomAiChat({ presetId });
+    });
+  });
+}
+
+async function refreshVoicevoxEngineStatus() {
+  const status = await checkVoicevoxEngine(getAiVoicevoxEngineUrl());
+  if (status.ok) {
+    els.voiceStatus.textContent = `VOICEVOX 引擎已连接（${status.engineUrl}）· AI 对白将使用 VOICEVOX`;
+    return true;
+  }
+  els.voiceStatus.textContent = `VOICEVOX 未连接：请先打开 VOICEVOX 并保持引擎运行（${status.engineUrl}）`;
+  return false;
+}
+
+async function openAiChatSetup() {
   if (!state.settings.vnMode) {
     alert("请先开启【二次元立绘模式】，以获得最佳的口语对练沉浸式体验。");
     return;
   }
   if (!state.settings.geminiKey) {
-    alert("请先配置并保存您的 OpenRouter API Key！");
+    alert("请先配置并保存您的 Gemini API Key！");
     return;
   }
   els.vnAiCustomInput.value = "";
   document.body.classList.add("vn-ai-modal-open");
   els.vnAiSetupModal.style.display = "flex";
-  els.dialogueThread.classList.add("is-hidden"); // Hide subtitles behind modal
+  els.dialogueThread.classList.add("is-hidden");
+  await loadScenePresets();
+  renderScenePresetGrid();
+  const engineReady = await refreshVoicevoxEngineStatus();
+  if (!engineReady) {
+    alert(
+      "未检测到 VOICEVOX 引擎。\n\n请先启动 VOICEVOX 客户端（引擎默认地址 http://127.0.0.1:50021），\nAI 对白只会使用 VOICEVOX，不会回退到浏览器语音。",
+    );
+  }
 }
 
 function closeAiChatSetup() {
@@ -1906,62 +1964,59 @@ function closeAiChatSetup() {
   els.dialogueThread.classList.remove("is-hidden"); // Restore subtitles
 }
 
-async function startCustomAiChat(customScene = "") {
+async function startCustomAiChat(options = {}) {
+  const presetId = String(options.presetId || "").trim();
+  const sceneDescription = String(options.sceneDescription || "").trim();
+
   const loadingOverlay = document.createElement("div");
   loadingOverlay.className = "modal-loading-overlay";
   loadingOverlay.innerHTML = `
     <div class="modal-spinner"></div>
-    <p style="font-weight: bold; font-size: 15px; color: #f3d4a2;">🌸 正在基于日本社会文化与礼仪编排关卡...</p>
-    <p style="font-size: 12.5px; color: rgba(255, 255, 255, 0.7); margin-top: -8px;">通常需要 3-5 秒，请稍候</p>
+    <p style="font-weight: bold; font-size: 15px; color: #f3d4a2;">🌸 正在从 JDD 语料检索并编排对白…</p>
+    <p style="font-size: 12.5px; color: rgba(255, 255, 255, 0.7); margin-top: -8px;">AI 会润色自然口语与相槌，通常 5-10 秒</p>
   `;
   els.vnAiSetupModal.querySelector(".vn-modal-content").appendChild(loadingOverlay);
 
   try {
-    let response;
-    if (customScene) {
-      response = await fetch("/api/gemini-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: state.settings.geminiKey,
-          model: state.settings.geminiModel,
-          initCustom: true,
-          sceneDescription: customScene
-        })
-      });
+    let payload = {
+      key: state.settings.geminiKey,
+      model: state.settings.geminiModel,
+      initCustom: true,
+    };
+
+    if (presetId) {
+      payload.presetId = presetId;
+    } else if (sceneDescription) {
+      payload.sceneDescription = sceneDescription;
     } else {
-      // Use current course scene
       const sentence = currentSentence();
-      const course = courses.find(c => c.id === state.course);
+      const course = courses.find((c) => c.id === state.course);
       const currentDialogue = getCurrentDialogueItems(state.queue, sentence);
-      const linesStr = currentDialogue.map(l => `${l.speaker || ""}: ${l.ja || ""}`).join("\n");
-      const defaultDesc = `主题场景：${course?.label || "日常生活"}\n背景会话：\n${linesStr}`;
-      
-      response = await fetch("/api/gemini-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: state.settings.geminiKey,
-          model: state.settings.geminiModel,
-          initCustom: true,
-          sceneDescription: defaultDesc
-        })
-      });
+      const linesStr = currentDialogue.map((l) => `${l.speaker || ""}: ${l.ja || ""}`).join("\n");
+      payload.sceneDescription = `主题场景：${course?.label || "日常生活"}\n背景会话：\n${linesStr}`;
     }
 
-    if (!response.ok) throw new Error(`OpenRouter Init Failed: ${response.status}`);
-    const data = await response.json();
+    const response = await fetch("/api/gemini-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Gemini Init Failed: ${response.status}`);
+    const data = await readApiJson(response);
     if (data.success && data.result) {
       const missionData = data.result;
-      
-      // Initialize AI Mission State
+      state.aiSceneDialogue = data.sceneDialogue || null;
+
       state.aiMission = {
         character: missionData.character_name || "ずんだもん",
         characterDesc: missionData.character_desc || "",
         goal: missionData.mission_goal || "完成口语对话",
         checkpoints: missionData.checkpoints || [],
         completed: [],
-        active: true
+        active: true,
+        sceneLabel: state.aiSceneDialogue?.sceneLabel || "",
+        sceneSource: state.aiSceneDialogue?.source || "",
       };
 
       state.aiChatActive = true;
@@ -1996,14 +2051,14 @@ async function startCustomAiChat(customScene = "") {
       // Render the AI session view
       renderAiChatSession();
       
-      // Synthesize first welcome voice
+      prefetchAiSceneDialogueSpeech(state.aiSceneDialogue);
       prefetchAiSpeech(missionData.first_utterance, "B");
       setTimeout(() => {
         playAiCharacterSpeech(missionData.first_utterance, "B");
       }, 120);
     }
   } catch (error) {
-    alert("AI 场景任务生成失败，请检查 OpenRouter API Key 和模型名称后重试。\n错误: " + error.message);
+    alert("AI 场景任务生成失败，请检查 Gemini API Key 和模型名称后重试。\n错误: " + error.message);
   } finally {
     loadingOverlay.remove();
   }
@@ -2013,16 +2068,59 @@ function msgTextClean(text) {
   return String(text || "").trim();
 }
 
+function renderAiCorpusPanel(sceneDialogue) {
+  if (!sceneDialogue?.utterances?.length) return "";
+
+  const sourceLabel =
+    sceneDialogue.source === "jdd"
+      ? "JDD 语料提炼"
+      : sceneDialogue.source === "hybrid"
+        ? "语料+生成混合"
+        : "AI 实时生成";
+
+  const lines = sceneDialogue.utterances
+    .slice(0, 8)
+    .map((line, index) => {
+      const aizuchi = line.isAizuchi ? '<span class="vn-ai-aizuchi-tag">相槌</span>' : "";
+      const zh = line.zh ? `<span class="vn-ai-corpus-zh">${escapeHtml(line.zh)}</span>` : "";
+      const playBtn = line.ja
+        ? `<button type="button" class="vn-ai-corpus-play-btn" onclick="playAiCorpusLine(${index})" title="VOICEVOX 朗读">🔊</button>`
+        : "";
+      return `<li>${playBtn}<div class="vn-ai-corpus-line-text"><strong>${escapeHtml(line.speaker)}:</strong> ${escapeHtml(line.ja)} ${aizuchi}${zh ? `<br>${zh}` : ""}</div></li>`;
+    })
+    .join("");
+
+  const tips = sceneDialogue.aizuchiTipsZh
+    ? `<p class="vn-ai-corpus-tips">${escapeHtml(sceneDialogue.aizuchiTipsZh)}</p>`
+    : "";
+
+  return `
+    <div class="vn-ai-corpus-panel">
+      <p class="vn-ai-corpus-meta">
+        <strong>${escapeHtml(sceneDialogue.sceneLabel || "场景")}</strong>
+        · ${escapeHtml(sourceLabel)}
+        ${sceneDialogue.matchScore ? ` · 匹配 ${Math.round(sceneDialogue.matchScore * 100)}%` : ""}
+      </p>
+      <p class="vn-ai-corpus-summary">${escapeHtml(sceneDialogue.sceneSummaryZh || sceneDialogue.sceneDescription || "")}</p>
+      <ul class="vn-ai-corpus-lines">${lines}</ul>
+      ${tips}
+    </div>
+  `;
+}
+
 function renderAiChatSession() {
   if (!state.aiChatActive) return;
 
   els.dialogueThread.classList.remove("is-hidden"); // Restore visibility for AI Chat bubbles
 
   // 1. Render Floating Checklist HUD at the top of dialogue area
+  const corpusPanel = renderAiCorpusPanel(state.aiSceneDialogue);
+
   let checklistHtml = `
     <div class="vn-ai-checklist" id="vnAiChecklist">
-      <h4>🌸 口语挑战任务：${state.aiMission.character} 的对练会话</h4>
-      <p class="vn-ai-checklist-goal"><strong>任务目标：</strong>${state.aiMission.goal}</p>
+      <h4>🌸 口语挑战任务：${escapeHtml(state.aiMission.character)} 的对练会话</h4>
+      ${corpusPanel}
+      <p class="vn-ai-checklist-goal"><strong>任务目标：</strong>${escapeHtml(state.aiMission.goal)}</p>
       <ul class="vn-ai-checklist-steps">
   `;
 
@@ -2054,7 +2152,7 @@ function renderAiChatSession() {
     if (msg.role === "user" && msg.userAudioUrl) {
       voiceBtn = `<button type="button" class="chat-bubble-audio-btn" onclick="playUserHistoryAudio(${idx})">👤 听我的发音</button>`;
     } else if (msg.role === "model" && msg.ja) {
-      voiceBtn = `<button type="button" class="chat-bubble-audio-btn" onclick="playAiHistoryAudio(${idx})">🔊 听原生朗读</button>`;
+      voiceBtn = `<button type="button" class="chat-bubble-audio-btn" onclick="playAiHistoryAudio(${idx})">🔊 VOICEVOX</button>`;
     }
 
     bubblesHtml += `
@@ -2080,12 +2178,17 @@ function renderAiChatSession() {
   // Scroll to bottom
   els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
 
-  if (state.settings.voiceProvider !== "browser") {
-    state.aiChatHistory.forEach((msg) => {
-      if (msg.role === "model" && msg.ja) prefetchAiSpeech(msg.ja, "B");
-    });
-  }
+  state.aiChatHistory.forEach((msg) => {
+    if (msg.role === "model" && msg.ja) prefetchAiSpeech(msg.ja, "B");
+  });
 }
+
+window.playAiCorpusLine = function (index) {
+  const line = state.aiSceneDialogue?.utterances?.[index];
+  if (!line?.ja) return;
+  const speakerChar = line.speaker === "A" ? "A" : "B";
+  playAiCharacterSpeech(line.ja, speakerChar);
+};
 
 window.playAiHistoryAudio = function(index) {
   const msg = state.aiChatHistory[index];
@@ -2176,7 +2279,7 @@ async function sendAiChatMessage() {
   els.dialogueThread.scrollTop = els.dialogueThread.scrollHeight;
 
   try {
-    // Format conversation history payload for the OpenRouter chat proxy.
+    // Format conversation history payload for the Gemini chat proxy.
     const historyPayload = buildAcceptedAiHistoryPayload(state.aiChatHistory);
 
     const response = await fetch("/api/gemini-chat", {
@@ -2194,8 +2297,8 @@ async function sendAiChatMessage() {
       })
     });
 
-    if (!response.ok) throw new Error(`OpenRouter Chat Failed: ${response.status}`);
-    const data = await response.json();
+    if (!response.ok) throw new Error(`Gemini Chat Failed: ${response.status}`);
+    const data = await readApiJson(response);
     
     if (data.success && data.result) {
       const aiReply = data.result;
@@ -2312,6 +2415,7 @@ function exitAiChat() {
   state.aiChatActive = false;
   state.aiChatHistory = [];
   state.aiMission = { character: "", goal: "", checkpoints: [], completed: [], active: false };
+  state.aiSceneDialogue = null;
 
   // Restore button labels & highlight
   els.vnAiChatBtn.textContent = "💬 互动";
