@@ -3,10 +3,10 @@
   "title": "（社説）中国の民族新法　国外適用は容認できぬ",
   "sourceUrl": "https://www.asahi.com/articles/DA3S16496827.html",
   "newspaper": "asahi",
-  "syncedAt": "2026-07-08T07:11:49.008Z",
+  "syncedAt": "2026-07-08T07:13:22.526Z",
   "reading": {
-    "topic": "社会保障の給付　サービスの議論がない",
-    "summaryJa": "",
+    "topic": "中国の民族新法　国外適用は容認できぬ",
+    "summaryJa": "朝日新闻社论对中国新实施的《民族团结进步促进法》表示强烈担忧，认为该法不仅加强了国内管控，更不容许其域外适用性，可能将他国合法行为视为非法，并呼吁国际社会严密监控其执行。",
     "readMinutes": 0,
     "vocab": []
   },
@@ -18,21 +18,10 @@
     "readingTips": ""
   },
   "speaking": {
-    "summary30s": {
-      "done": false,
-      "script": ""
-    },
-    "myOpinion": {
-      "stance": "undecided",
-      "script": ""
-    },
-    "retellNextDay": {
-      "dueDate": "2026-07-07",
-      "done": false,
-      "script": ""
-    },
-    "minutes": 0,
-    "done": false
+    "flowTitle": "",
+    "done": false,
+    "script": "",
+    "minutes": 0
   },
   "policy": "GitHub-safe export: no article full text, no editorial sentence quotes"
 }
