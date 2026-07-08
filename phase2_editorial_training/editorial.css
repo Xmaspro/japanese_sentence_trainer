@@ -782,3 +782,22 @@ pre.script {
   color: var(--muted);
   font-size: 0.84rem;
 }
+
+.speaking-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.speaking-mode-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+/* Speaking styles removed - 社说 now pure reading material.
+   Oral practice functionality removed. */

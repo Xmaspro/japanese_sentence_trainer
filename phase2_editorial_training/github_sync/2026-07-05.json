@@ -1,0 +1,167 @@
+{
+  "date": "2026-07-05",
+  "title": "［社説］建国250年の米国は民主主義の力を示せ",
+  "sourceUrl": "https://www.nikkei.com/article/DGXZQODK050W00V00C26A7000000/",
+  "newspaper": "nikkei",
+  "syncedAt": "2026-07-08T13:12:58.073Z",
+  "reading": {
+    "topic": "",
+    "summaryJa": "在美国建国250周年之际，社论指出美国正面临深刻的分裂和前总统特朗普的专制倾向，背离了建国理念。文章肯定了美国民主的韧性，但呼吁其正视经济差距、拥抱包容性，以重振其作为强大民主国家的力量。",
+    "readMinutes": 0,
+    "vocab": [
+      {
+        "lemma": "刻印する",
+        "reading": "こくいんする",
+        "meaningZh": "刻印，雕刻",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "圧政",
+        "reading": "あっせい",
+        "meaningZh": "暴政，高压统治",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "誇示する",
+        "reading": "こじする",
+        "meaningZh": "炫耀，夸耀",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "さいなまれる",
+        "reading": "さいなまれる",
+        "meaningZh": "受折磨，受煎熬",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "指弾する",
+        "reading": "しだんする",
+        "meaningZh": "指责，弹劾",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "専制",
+        "reading": "せんせい",
+        "meaningZh": "专制，独裁",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "軽んじる",
+        "reading": "かろんじる",
+        "meaningZh": "轻视，蔑视",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "歯止めをかける",
+        "reading": "はどめをかける",
+        "meaningZh": "刹住，制止",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "強靱性",
+        "reading": "きょうじんせい",
+        "meaningZh": "韧性，坚韧性",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "喝破する",
+        "reading": "かっぱする",
+        "meaningZh": "看穿，一语道破",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "そぐ",
+        "reading": "そぐ",
+        "meaningZh": "削弱，减损",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "企図する",
+        "reading": "きとする",
+        "meaningZh": "企图，谋划",
+        "jlptLevel": "",
+        "n1Note": ""
+      }
+    ]
+  },
+  "grammar": [
+    {
+      "pattern": "〜に過ぎない",
+      "jlptLevel": "N2-N1",
+      "usageContext": [
+        "书面",
+        "正式"
+      ],
+      "explanationZh": "表示“仅仅是…而已”、“不过是…罢了”，强调程度或范围有限。"
+    },
+    {
+      "pattern": "〜かに映る",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "表示“看起来好像…”、“似乎…”，带有推测或主观感受的意味。"
+    },
+    {
+      "pattern": "〜というほかない",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "正式"
+      ],
+      "explanationZh": "表示“除了…别无他法”、“只能说…”，强调别无选择或别无其他解释。"
+    },
+    {
+      "pattern": "〜点をみれば",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "表示“从…这一点来看”、“鉴于…”，用于引出基于某个事实或情况的判断或结论。"
+    },
+    {
+      "pattern": "〜つつも",
+      "jlptLevel": "N2",
+      "usageContext": [
+        "书面",
+        "正式"
+      ],
+      "explanationZh": "表示“虽然…但是…”，连接两个有对比或转折关系的事项，前项是正在进行或持续的状态。"
+    },
+    {
+      "pattern": "〜かねない",
+      "jlptLevel": "N2",
+      "usageContext": [
+        "书面",
+        "正式"
+      ],
+      "explanationZh": "表示“很可能…”、“恐怕会…”，用于表达对某种负面结果的担忧或预测。"
+    }
+  ],
+  "lectureZh": {
+    "eventBackground": "",
+    "topicContext": "本文深入探讨了美国民主的核心原则，如“合众为一”（E Pluribus Unum）、三权分立、自由和平等。它审视了这些理想如何受到当代问题的考验，例如政治两极分化、全球化和数字化带来的经济不平等，以及限制性移民政策。文章还触及了美国民主在克服过去危机方面的历史韧性。",
+    "newspaperStance": "该报纸对前总统特朗普的执政风格持批评态度，认为其专制且与美国的建国精神相悖。文章对日益加深的分裂和民主原则可能被侵蚀表示担忧。然而，它也承认美国民主固有的力量和韧性，这体现在司法制衡和民众抗议中。社论最终采取了一种警示而又充满希望的基调，敦促美国回归其建国理想，解决经济差距等当前挑战，并拥抱包容性，以展现其民主力量。",
+    "readingTips": "阅读此类社论时，请注意历史背景如何被用来批判当代问题。通过关注批评性语言（例如，「強権的な統治者」、「軽んじて」）和行动呼吁（例如，「示してほしい」、「向き合うべきだ」）来识别报纸的立场。此外，观察具体事例（特朗普的总统令、最高法院的裁决、「NO KINGS」抗议活动）的使用，以支持论点。理解其潜在的哲学概念（例如，“E Pluribus Unum”、三权分立）对于全面把握批判的深度至关重要。"
+  },
+  "speaking": {
+    "flowTitle": "",
+    "done": false,
+    "script": "",
+    "minutes": 0
+  },
+  "policy": "GitHub-safe export: no article full text, no editorial sentence quotes"
+}

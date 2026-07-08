@@ -54,15 +54,16 @@ test("parseAsahiEditorialArticle extracts paragraphs before paywall", () => {
   assert.doesNotMatch(article.fullText, /有料会員/);
 });
 
-test("convertToDesuMasu handles common editorial endings", () => {
+test("convertToDesuMasu handles common editorial endings in spoken style", () => {
   assert.equal(
     convertToDesuMasu("これが、社会保障国民会議の姿だ。"),
-    "これが、社会保障国民会議の姿です。",
+    "これが、社会保障国民会議の姿なんです。",
   );
   assert.equal(
     convertToDesuMasu("政治は財源確保から目をそむけがちだ。"),
-    "政治は財源確保から目をそむけがちです。",
+    "政治は財源確保から目をそむけがちなんです。",
   );
+  assert.doesNotMatch(convertToDesuMasu("必要だ。"), /と言えます/);
 });
 
 test("buildSpeakingExercises creates a single retelling script", () => {
@@ -83,6 +84,9 @@ test("buildSpeakingExercises creates a single retelling script", () => {
     exercises.recording,
     "phase2_editorial_training/editorial_speaking/recordings/2026-07-06/retelling.m4a",
   );
+  assert.doesNotMatch(exercises.script, /と言えます/);
+  assert.match(exercises.script, /んです|と思います/);
+  assert.equal(exercises.desuMasuConversion, undefined);
 });
 
 test("ensureSpeakingSteps keeps user script and migrates legacy speaking", () => {

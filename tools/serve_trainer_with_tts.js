@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { generateBackground } = require("./generate_bg_helper");
-const { ensureSpeakingSteps } = require("./asahi_editorial_fetcher.js");
+const { ensureSpeakingModes } = require("./editorial_podcast_pipeline.js");
 const {
   findBundleForRequest,
   listBundleDates,
@@ -16,7 +16,7 @@ function withEnsuredSpeaking(bundle) {
   if (!bundle?.article?.paragraphs?.length) return bundle;
   return {
     ...bundle,
-    speaking: ensureSpeakingSteps(bundle.speaking, {
+    speaking: ensureSpeakingModes(bundle.speaking, {
       title: bundle.source?.title || "",
       paragraphs: bundle.article.paragraphs,
       dateKey: bundle.date,
@@ -31,7 +31,7 @@ const { listScenePresets } = require("./scene_presets.js");
 const { generateSceneDialogue } = require("./scene_dialogue_pipeline.js");
 
 const root = path.resolve(__dirname, "..");
-const host = "127.0.0.1";
+const host = "0.0.0.0";
 const port = Number(process.env.PORT || 5177);
 const VOICEVOX_ENGINE_URL = String(process.env.VOICEVOX_ENGINE_URL || "http://127.0.0.1:50021").replace(/\/+$/, "");
 
@@ -43,6 +43,9 @@ const contentTypes = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
+  ".wav": "audio/wav",
+  ".m4a": "audio/mp4",
+  ".mp3": "audio/mpeg",
 };
 
 http
@@ -109,6 +112,10 @@ http
         await handleVoicevoxStatus(request, response);
         return;
       }
+      if (url.pathname.startsWith("/api/")) {
+        sendJsonError(response, 404, `API endpoint not found: ${url.pathname}`);
+        return;
+      }
       serveStatic(url.pathname, response);
     } catch (error) {
       if (url.pathname.startsWith("/api/")) {
@@ -120,8 +127,8 @@ http
     }
   })
   .listen(port, host, () => {
-    console.log(`Japanese trainer: http://${host}:${port}/japanese_sentence_trainer/index.html`);
-    console.log(`Editorial trainer: http://${host}:${port}/phase2_editorial_training/editorial.html`);
+    console.log(`Japanese trainer: http://127.0.0.1:${port}/japanese_sentence_trainer/index.html`);
+    console.log(`Editorial trainer (pure reading): http://127.0.0.1:${port}/phase2_editorial_training/editorial.html`);
     console.log("AI provider: Google Gemini API");
     const scheduler = startEditorialScheduler();
     if (scheduler.started) {
@@ -159,6 +166,9 @@ async function handleEditorialRun(request, response) {
       forceFetch: Boolean(body.forceFetch),
       forceAnalyze: Boolean(body.forceAnalyze),
       forceResearch: Boolean(body.forceResearch),
+      forcePodcast: Boolean(body.forcePodcast),
+      skipPodcastTts: Boolean(body.skipPodcastTts),
+      ttsModel: String(body.ttsModel || "").trim() || undefined,
     });
     response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
     response.end(JSON.stringify(result));

@@ -227,60 +227,61 @@ function extractQuotedTerms(text) {
   return [...String(text || "").matchAll(/「([^」]{2,24})」/g)].map((match) => match[1]);
 }
 
-function pickDesuMasuCandidates(paragraphs, limit = 4) {
-  const sentences = [];
-  for (const paragraph of paragraphs) {
-    const parts = paragraph
-      .split(/(?<=。)/)
-      .map((part) => part.trim())
-      .filter((part) => part.length >= 18 && part.length <= 90);
-    sentences.push(...parts);
+function applySpokenPhraseRules(text) {
+  const phraseRules = [
+    [/在留外国人が/g, "在留外国人の方が"],
+    [/外国人労働者らが/g, "外国人の労働者の方が"],
+    [/移民が公用語/g, "移民の人が公用語"],
+    [/プロジェクトチーム/g, "PT"],
+    [/日本語や生活上のルール/g, "日本語とか生活のルール"],
+    [/韓国やドイツなどは/g, "韓国とかドイツみたいな国は"],
+    [/創設に向け、?/g, "作ろうとしてて、"],
+    [/自治体任せだった従来の姿勢を改め、/g, "自治体任せだったのを変えて、"],
+    [/国が責任をもって取り組むのは/g, "国がちゃんと責任持ってやるっていうのは"],
+    [/大きな前進だ。$/, "すごく前進だと思います。"],
+    [/低価格で提供している。$/, "安く提供してるんですよね。"],
+    [/外国人に適応を求めるだけではなく、/g, "外国人に「適応しろ」だけじゃなくて、"],
+    [/受け入れる側が他国の文化を知り、/g, "受け入れる側も相手の文化を知って、"],
+    [/異なる習慣や価値観を尊重する姿勢も必要だ。$/, "違う習慣や価値観を尊重する姿勢が必要だと思います。"],
+    [/学ぶプログラム/g, "学べるプログラム"],
+    [
+      /外国人労働者らが通える日本語教室がない「空白地域」は、市区町村の(\d+％)を占める。$/,
+      "外国人の労働者の方が通える日本語教室がない地域、空白地域っていうんですけど、市区町村の$1もあるらしいです。",
+    ],
+  ];
+
+  let result = text;
+  for (const [pattern, replacement] of phraseRules) {
+    result = result.replace(pattern, replacement);
   }
-
-  const ranked = sentences
-    .filter((sentence) => /だ。|ない。|である。|している。|ていない。/.test(sentence))
-    .sort((a, b) => scoreDesuMasuCandidate(b) - scoreDesuMasuCandidate(a));
-
-  const unique = [];
-  for (const sentence of ranked) {
-    if (!unique.some((item) => item.originalFromEditorial === sentence)) {
-      unique.push({
-        originalFromEditorial: sentence,
-        spoken: convertToDesuMasu(sentence),
-      });
-    }
-    if (unique.length >= limit) break;
-  }
-  return unique.length ? unique : [{ originalFromEditorial: paragraphs[0] || "", spoken: "" }];
-}
-
-function scoreDesuMasuCandidate(sentence) {
-  let score = 0;
-  if (sentence.endsWith("だ。")) score += 3;
-  if (sentence.includes("「")) score += 2;
-  if (sentence.length >= 30 && sentence.length <= 70) score += 2;
-  return score;
+  return result;
 }
 
 function convertToDesuMasu(sentence) {
   let text = String(sentence || "").trim();
   if (!text) return "";
 
+  text = applySpokenPhraseRules(text);
   text = text
-    .replace(/([^い])ない。$/, "$1ありません。")
-    .replace(/いない。$/, "いません。")
-    .replace(/だ。$/, "です。")
-    .replace(/である。$/, "です。")
-    .replace(/している。$/, "しています。")
-    .replace(/ていない。$/, "ていません。")
-    .replace(/できる。$/, "できます。")
-    .replace(/ある。$/, "あります。")
-    .replace(/ない。$/, "ありません。");
+    .replace(/と言えます。/g, "と思います。")
+    .replace(/動き出した。$/, "動き始めたんです。")
+    .replace(/まとめた。$/, "まとめたんです。")
+    .replace(/占める。$/, "あるらしいです。")
+    .replace(/進めてほしい。$/, "進めてほしい、っていうことですね。")
+    .replace(/前進だ。$/, "前進だと思います。")
+    .replace(/必要だ。$/, "必要だと思います。")
+    .replace(/べきだ。$/, "べきだと思います。")
+    .replace(/だろう。$/, "でしょう。")
+    .replace(/姿だ。$/, "姿なんです。")
+    .replace(/である。$/, "なんです。")
+    .replace(/している。$/, "してるんですよね。")
+    .replace(/ていない。$/, "ていないんです。")
+    .replace(/([^い])ない。$/, "$1ないんです。")
+    .replace(/いない。$/, "いないんです。")
+    .replace(/だ。$/, "なんです。")
+    .replace(/ある。$/, "あるんです。");
 
-  if (text === sentence && text.endsWith("。")) {
-    return text.replace(/。$/, "と言えます。");
-  }
-  return text;
+  return text.replace(/と言えます。/g, "と思います。");
 }
 
 function buildSummaryScaffold(title, paragraphs) {
@@ -361,16 +362,23 @@ function buildRetellingScript({ title, paragraphs, newspaperLabel = "朝日新�
   ];
 
   if (bodyLines.length) {
-    lines.push("", "この社説では、次の点が指摘されています。");
+    lines.push("", "この社説で特に気になったのは、次の点です。");
     bodyLines.forEach((line, index) => {
-      lines.push(index === 0 ? line : `また、${line}`);
+      const spoken = line
+        .replace(/と言えます。$/, "と思います。")
+        .replace(/です。$/, "んです。");
+      lines.push(index === 0 ? spoken : `それから、${spoken}`);
     });
   }
 
   if (closeLines.length) {
     lines.push("", `${paper}の立場をまとめると、`);
     closeLines.forEach((line, index) => {
-      lines.push(index === 0 ? line : `そして、${line}`);
+      const spoken = line
+        .replace(/と言えます。$/, "と思います。")
+        .replace(/なんです。$/, "だと思います。")
+        .replace(/です。$/, "だと思います。");
+      lines.push(index === 0 ? spoken : `あと、${spoken}`);
     });
   }
 
@@ -399,22 +407,23 @@ function ensureSpeakingSteps(speaking, { title, paragraphs, dateKey, newspaperLa
   const fresh = buildSpeakingExercises({ title, paragraphs, dateKey, newspaperLabel });
   if (!speaking) return fresh;
 
-  const previousScript = legacySpeakingScript(speaking);
+  const retellingSource = speaking.retelling || speaking;
+  const previousScript = legacySpeakingScript(retellingSource);
   const keepPreviousScript = previousScript && !isPlaceholderSpeakingScript(previousScript);
 
   return {
     flowTitle: fresh.flowTitle,
     flowHint: fresh.flowHint,
     script: keepPreviousScript ? previousScript : fresh.script,
-    recording: speaking.recording || fresh.recording,
-    done: speaking.done ?? speaking.summary30s?.done ?? false,
+    recording: retellingSource.recording || speaking.recording || fresh.recording,
+    done: retellingSource.done ?? speaking.done ?? speaking.summary30s?.done ?? false,
   };
 }
 
 function buildSpeakingExercises({ title, paragraphs, dateKey, newspaperLabel }) {
   return {
     flowTitle: "社论复述口语范本",
-    flowHint: "先大声朗读下面的です・ます范文，再合上正文用自己的话复述一遍。",
+    flowHint: "先大声朗读下面的です・ます口语范文，再合上正文用自己的话复述一遍。",
     script: buildRetellingScript({ title, paragraphs, newspaperLabel }),
     recording: `phase2_editorial_training/editorial_speaking/recordings/${dateKey}/retelling.m4a`,
     done: false,
@@ -499,13 +508,19 @@ function mergeReading(existing, patch) {
   };
 }
 
-function mergeSpeaking(existing, { title, paragraphs, dateKey }) {
+function mergeSpeaking(existing, { title, paragraphs, dateKey, newspaperLabel }) {
+  const { ensureSpeakingModes } = require("./editorial_podcast_pipeline.js");
   return {
     ...existing,
     date: dateKey,
     linkedReading: `phase2_editorial_training/editorial_readings/text/${dateKey}.json`,
     source: "asahi-editorial-fetch",
-    exercises: ensureSpeakingSteps(existing.exercises, { title, paragraphs, dateKey }),
+    exercises: ensureSpeakingModes(existing.exercises, {
+      title,
+      paragraphs,
+      dateKey,
+      newspaperLabel: newspaperLabel || "朝日新聞",
+    }),
   };
 }
 
@@ -575,6 +590,7 @@ async function fetchAsahiEditorialForDate(options = {}) {
       title: fetchedRecord.title,
       paragraphs: fetchedRecord.paragraphs,
       dateKey,
+      newspaperLabel: "朝日新聞",
     }),
   );
 
@@ -617,7 +633,6 @@ module.exports = {
   normalizeEditorialUrl,
   parseAsahiEditorialArticle,
   parseAsahiEditorialList,
-  pickDesuMasuCandidates,
   pickListItemForDate,
   dedupeParagraphs,
   extractEditorialParagraphs,
