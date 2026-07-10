@@ -509,18 +509,19 @@ function mergeReading(existing, patch) {
 }
 
 function mergeSpeaking(existing, { title, paragraphs, dateKey, newspaperLabel }) {
-  const { ensureSpeakingModes } = require("./editorial_podcast_pipeline.js");
   return {
     ...existing,
     date: dateKey,
     linkedReading: `phase2_editorial_training/editorial_readings/text/${dateKey}.json`,
     source: "asahi-editorial-fetch",
-    exercises: ensureSpeakingModes(existing.exercises, {
-      title,
-      paragraphs,
-      dateKey,
-      newspaperLabel: newspaperLabel || "朝日新聞",
-    }),
+    exercises: {
+      retelling: ensureSpeakingSteps(existing.exercises?.retelling || existing.exercises, {
+        title,
+        paragraphs,
+        dateKey,
+        newspaperLabel: newspaperLabel || "朝日新聞",
+      }),
+    },
   };
 }
 

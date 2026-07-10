@@ -3,19 +3,161 @@
   "title": "（社説）中国の民族新法　国外適用は容認できぬ",
   "sourceUrl": "https://www.asahi.com/articles/DA3S16496827.html",
   "newspaper": "asahi",
-  "syncedAt": "2026-07-08T13:12:58.073Z",
+  "syncedAt": "2026-07-10T22:43:57.851Z",
   "reading": {
     "topic": "中国の民族新法　国外適用は容認できぬ",
     "summaryJa": "朝日新闻社论对中国新实施的《民族团结进步促进法》表示强烈担忧，认为该法不仅加强了国内管控，更不容许其域外适用性，可能将他国合法行为视为非法，并呼吁国际社会严密监控其执行。",
     "readMinutes": 0,
-    "vocab": []
+    "vocab": [
+      {
+        "lemma": "締めつける",
+        "reading": "しめつける",
+        "meaningZh": "加强管制，束缚",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "及ぼしかねない",
+        "reading": "およぼしかねない",
+        "meaningZh": "可能造成影响，恐怕会波及",
+        "jlptLevel": "",
+        "n1Note": "「〜かねない」表示可能发生不好的结果"
+      },
+      {
+        "lemma": "懸念が膨らむ",
+        "reading": "けねんがふくらむ",
+        "meaningZh": "担忧加剧，疑虑增多",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "取り締まる",
+        "reading": "とりしまる",
+        "meaningZh": "取缔，管制",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "圧倒的に優位な",
+        "reading": "あっとうてきにゆういな",
+        "meaningZh": "压倒性优势的",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "延長線上にある",
+        "reading": "えんちょうせんじょうにある",
+        "meaningZh": "是…的延续，在…的延长线上",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "追認し",
+        "reading": "ついにんし",
+        "meaningZh": "追认，认可",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "主眼がどこにあるか",
+        "reading": "しゅがんがどこにあるか",
+        "meaningZh": "重点在哪里",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "覆い隠す",
+        "reading": "おおいかくす",
+        "meaningZh": "掩盖，遮蔽",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "看過できない",
+        "reading": "かんかできない",
+        "meaningZh": "不容忽视，不能坐视不理",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "あいまいな",
+        "reading": "あいまいな",
+        "meaningZh": "暧昧的，模糊的",
+        "jlptLevel": "",
+        "n1Note": ""
+      },
+      {
+        "lemma": "ひとごとではない",
+        "reading": "ひとごとではない",
+        "meaningZh": "并非事不关己，与己有关",
+        "jlptLevel": "",
+        "n1Note": ""
+      }
+    ]
   },
-  "grammar": [],
+  "grammar": [
+    {
+      "pattern": "〜だけでなく、〜も",
+      "jlptLevel": "N2-N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "表示不仅限于前项，后项也同样成立或发生。常用于强调后项。"
+    },
+    {
+      "pattern": "〜かねない",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论",
+        "正式"
+      ],
+      "explanationZh": "表示有可能发生某种不好的结果或情况。"
+    },
+    {
+      "pattern": "〜を優先してきた",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论",
+        "正式"
+      ],
+      "explanationZh": "表示过去持续到现在的一种优先处理某事的状态或政策。"
+    },
+    {
+      "pattern": "〜を追認し、〜を義務づけた",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "动词连用形「〜し」连接两个动作，表示前一个动作发生后紧接着发生后一个动作，或两个动作同时发生。这里表示新法先是追认了之前的做法，然后将其义务化。"
+    },
+    {
+      "pattern": "〜を軽視していないだろうか",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "以疑问形式表达作者的担忧或批判，暗示某种负面情况正在发生。"
+    },
+    {
+      "pattern": "〜ようなことがあれば",
+      "jlptLevel": "N1",
+      "usageContext": [
+        "书面",
+        "社论"
+      ],
+      "explanationZh": "假设某种情况发生，并指出其可能带来的影响或后果。"
+    }
+  ],
   "lectureZh": {
     "eventBackground": "",
-    "topicContext": "",
-    "newspaperStance": "",
-    "readingTips": ""
+    "topicContext": "中国是一个多民族国家，汉族人口约占90%，其余10%由55个少数民族构成。尽管宪法规定民族平等，但实际上汉族处于绝对优势地位。社论认为，“中华民族”这一概念具有政治性，可能掩盖汉族主导的现实，并忽视各民族文化的独特性。新法还提及台湾，强调“共同的中国人意识”，引发了台湾方面的强烈反弹。",
+    "newspaperStance": "《朝日新闻》对中国新施行的“民族团结进步促进法”表达了强烈担忧和不容忍的态度，特别是对其域外适用条款。社论认为，该法不仅收紧了国内控制，还可能将中国的法律管辖权延伸至境外，压制他国公民的言论自由，并呼吁包括日本在内的各国严密监控该法的实施。社论标题“国外適用は容認できぬ”（域外适用不可容忍）直接表明了其批判立场。",
+    "readingTips": "阅读时请注意社论的论证结构，它从国内影响逐步深入到更具争议的域外适用问题。留意社论中使用的强烈否定性表达，如「容認できぬ」（不可容忍）和「看過できない」（不容忽视），这些词语直接反映了作者的批判态度。理解社论如何通过具体案例（东京集会、香港留学生事件）来阐释法律的潜在风险和对言论自由的威胁。同时，关注社论最后对日本及国际社会提出的行动呼吁。"
   },
   "speaking": {
     "flowTitle": "",

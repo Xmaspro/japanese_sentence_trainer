@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { generateBackground } = require("./generate_bg_helper");
-const { ensureSpeakingModes } = require("./editorial_podcast_pipeline.js");
+const { ensureSpeakingSteps } = require("./asahi_editorial_fetcher.js");
 const {
   findBundleForRequest,
   listBundleDates,
@@ -16,7 +16,7 @@ function withEnsuredSpeaking(bundle) {
   if (!bundle?.article?.paragraphs?.length) return bundle;
   return {
     ...bundle,
-    speaking: ensureSpeakingModes(bundle.speaking, {
+    speaking: ensureSpeakingSteps(bundle.speaking, {
       title: bundle.source?.title || "",
       paragraphs: bundle.article.paragraphs,
       dateKey: bundle.date,
@@ -166,9 +166,6 @@ async function handleEditorialRun(request, response) {
       forceFetch: Boolean(body.forceFetch),
       forceAnalyze: Boolean(body.forceAnalyze),
       forceResearch: Boolean(body.forceResearch),
-      forcePodcast: Boolean(body.forcePodcast),
-      skipPodcastTts: Boolean(body.skipPodcastTts),
-      ttsModel: String(body.ttsModel || "").trim() || undefined,
     });
     response.writeHead(200, { "Content-Type": "application/json;charset=utf-8" });
     response.end(JSON.stringify(result));

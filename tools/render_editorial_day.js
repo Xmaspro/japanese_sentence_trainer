@@ -52,28 +52,7 @@ function renderVocab(vocab) {
     .join("")}</ul>`;
 }
 
-function renderPodcastBlock(exercises) {
-  const podcast = exercises?.podcast || {};
-  const utterances = podcast.utterances || [];
-  if (!utterances.length && !podcast.script) return "";
-  const hostA = podcast.hosts?.A?.nameJa || "さくら";
-  const hostB = podcast.hosts?.B?.nameJa || "けんた";
-  const audioHtml = podcast.recording
-    ? `<div class="speaking-audio-block"><audio controls preload="none" src="/${escapeHtml(podcast.recording.replace(/^\/+/, ""))}"></audio></div>`
-    : "";
-  const turns = utterances.length
-    ? utterances
-        .map((item) => {
-          const name = item.speaker === "B" ? hostB : hostA;
-          return `<article class="podcast-turn"><strong>${escapeHtml(name)}</strong><div>${escapeHtml(item.ja)}</div></article>`;
-        })
-        .join("")
-    : `<pre class="script">${escapeHtml(podcast.script)}</pre>`;
-  return `<section class="podcast-panel"><h3>${escapeHtml(podcast.flowTitle || "社说播客深聊")}</h3>${audioHtml}${turns}</section>`;
-}
-
 function renderSpeakingScript(exercises) {
-  const podcastHtml = renderPodcastBlock(exercises);
   const retelling = exercises?.retelling || exercises || {};
   const script = retelling.script || exercises?.script || "";
   if (!script && exercises?.steps?.length) {
@@ -83,14 +62,11 @@ function renderSpeakingScript(exercises) {
       .filter(Boolean)
       .join("\n\n");
     if (combined) {
-      return `${podcastHtml}<article class="speaking-script-card"><pre class="script">${escapeHtml(combined)}</pre></article>`;
+      return `<article class="speaking-script-card"><pre class="script">${escapeHtml(combined)}</pre></article>`;
     }
   }
-  if (!script && !podcastHtml) return '<p class="empty">口语范本尚未生成。</p>';
-  const scriptHtml = script
-    ? `<article class="speaking-script-card"><pre class="script">${escapeHtml(script)}</pre></article>`
-    : "";
-  return `${podcastHtml}${scriptHtml}`;
+  if (!script) return '<p class="empty">口语范本尚未生成。</p>';
+  return `<article class="speaking-script-card"><pre class="script">${escapeHtml(script)}</pre></article>`;
 }
 
 function renderEditorialHtml({ dateKey, fetched, reading, speaking }) {

@@ -633,8 +633,6 @@ async function runPipeline(date, { url = "", source = pickerState.source, forceF
         model: els.modelInput.value.trim(),
         forceFetch,
         forceAnalyze: forceFetch,
-        skipPodcastTts: true,
-        // 社说作为纯阅读材料，不生成口语内容
       }),
     });
     const data = await readApiJson(response);

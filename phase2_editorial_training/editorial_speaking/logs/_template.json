@@ -3,24 +3,6 @@
   "linkedReading": "phase2_editorial_training/editorial_readings/text/YYYY-MM-DD.json",
   "newspaper": "asahi",
   "exercises": {
-    "mode": "podcast",
-    "podcast": {
-      "flowTitle": "社说播客深聊",
-      "flowHint": "先听双人讨论，再对照脚本跟读重点句。",
-      "hosts": {
-        "A": { "nameJa": "さくら", "voice": "Kore", "role": "聞き手" },
-        "B": { "nameJa": "けんた", "voice": "Puck", "role": "解説者" }
-      },
-      "title": "",
-      "summaryZh": "",
-      "utterances": [],
-      "script": "",
-      "recording": "phase2_editorial_training/editorial_speaking/recordings/YYYY-MM-DD/podcast.wav",
-      "shadowingNoteZh": "",
-      "ttsModel": "",
-      "ttsError": "",
-      "done": false
-    },
     "retelling": {
       "flowTitle": "社论复述口语范本",
       "flowHint": "先大声朗读下面的です・ます口语范文，再合上正文用自己的话复述一遍。",

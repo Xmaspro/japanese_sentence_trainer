@@ -1,5 +1,5 @@
 const { normalizeEditorialUrl } = require("./asahi_editorial_fetcher.js");
-const { enrichSpeakingWithPodcast, ensureSpeakingModes } = require("./editorial_podcast_pipeline.js");
+const { ensureSpeakingSteps } = require("./asahi_editorial_fetcher.js");
 const { fetchEditorialForDate, listEditorialsForDate, normalizeSource } = require("./editorial_sources.js");
 const { analyzeEditorial, DEFAULT_MODEL } = require("./editorial_analyzer.js");
 const { buildRetrievalContext, researchEditorialTopic } = require("./editorial_researcher.js");
@@ -28,9 +28,9 @@ async function runEditorialDay(options = {}) {
   const existing = findBundleForRequest({ date: dateKey, url: articleUrl });
   const previousRef = existing ? { date: existing.date, id: existing.id } : null;
 
-  if (existing?.meta?.status === "ready" && !options.forceFetch && !options.forceAnalyze && !options.forcePodcast) {
+  if (existing?.meta?.status === "ready" && !options.forceFetch && !options.forceAnalyze) {
     if (existing.article?.paragraphs?.length) {
-      existing.speaking = ensureSpeakingModes(existing.speaking, {
+      existing.speaking = ensureSpeakingSteps(existing.speaking, {
         title: existing.source?.title || "",
         paragraphs: existing.article.paragraphs,
         dateKey: existing.date,
@@ -122,33 +122,12 @@ async function runEditorialDay(options = {}) {
   );
   bundle.analysis = analysisResult.data;
   bundle.researchMeta.skippedFacts = analysisResult.data.skippedFacts;
-  bundle.speaking = ensureSpeakingModes(bundle.speaking, {
+  bundle.speaking = ensureSpeakingSteps(bundle.speaking, {
     title: bundle.source.title,
     paragraphs: bundle.article.paragraphs,
     dateKey: bundle.date,
     newspaperLabel: bundle.source.newspaperLabel,
   });
-  try {
-    bundle.speaking = await enrichSpeakingWithPodcast(bundle, retrieval, {
-      apiKey: options.apiKey,
-      model: options.model || DEFAULT_MODEL,
-      fallbackModels: options.fallbackModels,
-      ttsModel: options.ttsModel,
-      ttsFallbackModels: options.ttsFallbackModels,
-      force: Boolean(options.forcePodcast || options.forceAnalyze),
-      skipTts: Boolean(options.skipPodcastTts),
-    });
-    steps.push(bundle.speaking?.podcast?.utterances?.length ? "podcast" : "podcast-skipped");
-  } catch (error) {
-    bundle.speaking = {
-      ...bundle.speaking,
-      podcast: {
-        ...(bundle.speaking?.podcast || {}),
-        ttsError: error.message || "Podcast generation failed",
-      },
-    };
-    steps.push("podcast-error");
-  }
   bundle.meta.analyzedAt = new Date().toISOString();
   bundle.meta.model = analysisResult.model || options.model || DEFAULT_MODEL;
   bundle.meta.modelFallbackUsed = Boolean(analysisResult.fallbackUsed);
